@@ -1,0 +1,22 @@
+$ErrorActionPreference = Stop
+
+$dir = Join-Path (Get-Location) cover
+$out = Join-Path $dir covers.json
+
+if (!(Test-Path $dir)) {
+  Write-Host [WARN] Folder 'cover' not found. Skipping.
+  exit 0
+}
+
+$exts = @(.jpg,.jpeg,.png,.webp,.gif)
+$files = Get-ChildItem -Path $dir -File -Include $exts  Sort-Object Name  Select-Object -ExpandProperty Name
+
+if (-not $files -or $files.Count -eq 0) {
+  Write-Host [WARN] No images found in cover. Writing empty array.
+  $files = @()
+}
+
+$json = $files  ConvertTo-Json -Depth 1
+$json  Out-File -FilePath $out -Encoding utf8
+
+Write-Host [OK] Wrote $out ($($files.Count) files)
