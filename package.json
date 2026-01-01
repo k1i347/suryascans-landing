@@ -1,0 +1,8 @@
+{
+  "name": "suryascans-landing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/generate-covers.mjs"
+  }
+}
