@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Suryascans • Introduction</title>
+  <title>Suryascans • We’re Back</title>
 
   <meta name="description" content="Surya Scans — English-focused scanlation group. Genres, featured projects, and contact links." />
   <meta property="og:title" content="Suryascans" />
   <meta property="og:description" content="Introduction, genres, featured projects, and contact links." />
   <meta property="og:type" content="website" />
+  
 
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -49,29 +50,26 @@
         <span class="dot">•</span>
         <a class="text-link" href="#contact">Contact</a>
       </div>
+    </section>
 
-      <!-- Featured projects strip (like your screenshot) -->
-      <section class="projects-strip" id="projects" aria-label="Featured projects">
+    <!-- FEATURED PROJECTS STRIP -->
+    <section class="projects-strip" id="projects" aria-label="Featured projects">
+      <div class="section-head">
+        <h2>Featured projects</h2>
+        <p class="muted">A quick preview of series we’re actively featuring right now.</p>
+      </div>
 
-      <section class="projects-strip" id="projects" aria-label="Featured projects">
-        <div class="section-head">
-          <h2>Featured projects</h2>
-          <p class="muted">Hover a cover to reveal the title. Auto-rotates when there are more than 5 covers.</p>
+      <div class="carousel" aria-label="Featured covers carousel">
+        <button class="nav-arrow left" type="button" aria-label="Previous" id="prevBtn">‹</button>
+
+        <div class="carousel-viewport" id="carouselViewport">
+          <div class="carousel-track" id="coversTrack" role="list"></div>
         </div>
 
-        <div class="carousel" aria-label="Featured covers carousel">
-          <button class="nav-arrow left" type="button" aria-label="Previous" id="prevBtn">‹</button>
+        <button class="nav-arrow right" type="button" aria-label="Next" id="nextBtn">›</button>
+      </div>
 
-          <div class="carousel-viewport" id="carouselViewport">
-            <div class="carousel-track" id="coversTrack" role="list"></div>
-          </div>
-
-          <button class="nav-arrow right" type="button" aria-label="Next" id="nextBtn">›</button>
-        </div>
-
-        <p class="muted" id="coversHint" style="margin-top:10px;"></p>
-      </section>
-
+      <p class="muted" id="coversHint" style="margin-top:10px;"></p>
     </section>
 
     <!-- INTRODUCTION -->
@@ -80,32 +78,32 @@
         <h2>Introduction</h2>
       </div>
 
-      <div class="prose">
-        <p>
-          Surya Scans emerged in the scanlation scene as an English-focused group that translated and released chapters
-          across multiple ongoing series, with its work frequently reflected in public chapter trackers and reader communities.
-          Rather than centering on a single title, the group’s footprint is best seen through release indexing:
-          one public release tracker lists Surya Scans at 60 series and 1,053 releases, and its “Group Releases” feed includes an
-          entry dated Feb 21, 2025, indicating activity recorded into 2025.
-        </p>
-        <p>
-          Surya Scans’ presence also appears in the surrounding fan-tool ecosystem. For example, a site request in the HakuNeko
-          project documents the group’s website endpoints (home, manga list, and chapter viewer patterns) and explicitly lists
-          the site’s supported language as English—the kind of detail typically used by third-party readers and scrapers to integrate
-          scanlation sites.
-        </p>
-      </div>
+    <div class="prose">
+      <p class="intro-lead">
+        <strong>Suryascans is back.</strong> After a period of downtime, we’ve returned and are rebuilding step by step.
+        This page is our official landing hub—made to give readers quick, reliable links and a clear snapshot of what we’re working on.
+      </p>
+
+      <p class="intro-body">
+        Here you’ll find featured projects, the genres we currently cover, and verified contact channels.
+        For updates and releases, please use the reading site linked above.
+      </p>
+
+      <p class="intro-note">
+        If you’ve seen older mirrors or unofficial pages, please use the links here to make sure you’re following the real channels.
+      </p>
+    </div>
+
     </section>
 
     <!-- GENRES -->
     <section class="section" id="genres">
       <div class="section-head">
         <h2>Current genres</h2>
-        <p class="muted">Counts reflect active tagging across releases.</p>
+        <p class="muted">Genre tags reflect what we’re currently publishing and highlighting.</p>
       </div>
 
       <div class="genres">
-        <!-- one item -->
         <div class="genre"><span>Action</span><span class="count">7</span></div>
         <div class="genre"><span>Adventure</span><span class="count">7</span></div>
         <div class="genre"><span>Crime</span><span class="count">4</span></div>
@@ -132,13 +130,12 @@
     <section class="section" id="contact">
       <div class="section-head">
         <h2>Contact</h2>
-        <p class="muted">Official channels</p>
+        <p class="muted">Verified channels (Discord, Facebook, and email). Please report impersonation via email.</p>
       </div>
 
       <div class="contact-list">
         <a class="contact-item" href="https://facebook.com/suryascans" rel="noopener" target="_blank">
           <span class="icon" aria-hidden="true">
-            <!-- Facebook SVG -->
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
               <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.25c-1.23 0-1.61.76-1.61 1.54V12h2.74l-.44 2.89h-2.3v6.99A10 10 0 0 0 22 12z"/>
             </svg>
@@ -151,7 +148,6 @@
 
         <a class="contact-item" href="https://discord.gg/DSYUVyQhbS" rel="noopener" target="_blank">
           <span class="icon" aria-hidden="true">
-            <!-- Discord SVG (simple) -->
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
               <path d="M20.3 4.4A16.9 16.9 0 0 0 16.1 3l-.5 1.1a15 15 0 0 0-3.6-.1A15 15 0 0 0 8.4 4L7.9 3a16.9 16.9 0 0 0-4.2 1.4C1.6 8 1 11.6 1.2 15.1c1.5 1.1 3.3 2 5.1 2.5l.9-1.4c-.6-.2-1.2-.5-1.8-.8l.4-.3c3.4 1.6 7.1 1.6 10.4 0l.4.3c-.6.3-1.2.6-1.8.8l.9 1.4c1.8-.5 3.6-1.4 5.1-2.5.3-3.9-.4-7.5-2.5-10.7ZM8.7 13.5c-.7 0-1.2-.7-1.2-1.5s.5-1.5 1.2-1.5 1.2.7 1.2 1.5-.5 1.5-1.2 1.5Zm6.6 0c-.7 0-1.2-.7-1.2-1.5s.5-1.5 1.2-1.5 1.2.7 1.2 1.5-.5 1.5-1.2 1.5Z"/>
             </svg>
@@ -164,7 +160,6 @@
 
         <a class="contact-item" href="mailto:Support@suryascans.top">
           <span class="icon" aria-hidden="true">
-            <!-- Email SVG -->
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
               <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"/>
             </svg>
@@ -178,9 +173,11 @@
     </section>
 
     <footer class="footer">
-      <div>© <span id="year"></span> Suryascans</div>
-      <a class="text-link" href="#top">Back to top</a>
+      <div>© <span id="year"></span> Suryascans. </div>
+      <div><span id="year"></span> About this page: This is a lightweight landing page for official links and project highlights. It does not host chapters directly. </div>
+      <a class="back-to-top" href="#top" aria-label="Back to top">↑</a>
     </footer>
+
   </main>
 
   <script src="./app.js"></script>

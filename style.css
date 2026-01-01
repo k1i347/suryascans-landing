@@ -316,10 +316,9 @@ h1{
 .value{ color: var(--muted); font-size: 15px; }
 
 .footer{
-  padding-top: 26px;
+  padding-top: 36px;
   display:flex;
   align-items:center;
-  justify-content:space-between;
   gap: 14px;
   color: var(--muted);
   font-size: 14px;
@@ -343,6 +342,61 @@ h1{
   gap: 12px;
   margin-top: 14px;
 }
+
+/* Bigger intro text */
+.prose .intro-lead{
+  font-size: clamp(18px, 2.2vw, 22px);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.prose .intro-body,
+.prose .intro-note{
+  font-size: clamp(16px, 1.8vw, 18px);
+  line-height: 1.7;
+}
+
+.prose .intro-note{
+  opacity: 0.9;
+}
+
+
+.back-to-top{
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 44px;
+  height: 44px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;       /* bo góc */
+  text-decoration: none;
+
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(10px);
+
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+
+  z-index: 9999;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.back-to-top:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.28);
+}
+
+.back-to-top:active{
+  transform: translateY(0);
+}
+
 
 .carousel-viewport{
   overflow: hidden;              /* hide overflow to look like your screenshot strip */
