@@ -140,11 +140,7 @@ function buildCovers(list) {
   });
 
   // helpful hint
-  if (hint) {
-    hint.textContent = covers.length
-      ? `Loaded ${covers.length} cover(s) from /cover. Titles are taken from filenames.`
-      : "";
-  }
+
 
   // Re-render on resize
   window.addEventListener("resize", () => {
