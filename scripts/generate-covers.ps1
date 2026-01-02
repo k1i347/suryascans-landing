@@ -38,12 +38,24 @@ $manhuaFiles = Get-Images $manhuaDir
 if (($manhwaFiles.Count -eq 0) -and ($manhuaFiles.Count -eq 0)) {
   $rootFiles = Get-Images $dir
   $data = @{
+    # Thêm order/sections để phía client luôn render đúng thứ tự (manhwa trước, manhua sau)
+    # ngay cả khi họ sort keys.
+    order = @("manhwa", "manhua")
+    sections = @(
+      @{ type = "manhwa"; items = ($rootFiles | ForEach-Object { @{ file = $_; title = Title-FromFilename $_ } }) }
+      @{ type = "manhua"; items = @() }
+    )
     manhwa = $rootFiles | ForEach-Object { @{ file = $_; title = Title-FromFilename $_ } }
     manhua = @()
   }
   $counts = @{ manhwa = $rootFiles.Count; manhua = 0 }
 } else {
   $data = @{
+    order = @("manhwa", "manhua")
+    sections = @(
+      @{ type = "manhwa"; items = ($manhwaFiles | ForEach-Object { @{ file = "manhwa/$($_)"; title = Title-FromFilename $_ } }) }
+      @{ type = "manhua"; items = ($manhuaFiles | ForEach-Object { @{ file = "manhua/$($_)"; title = Title-FromFilename $_ } }) }
+    )
     manhwa = $manhwaFiles | ForEach-Object { @{ file = "manhwa/$($_)"; title = Title-FromFilename $_ } }
     manhua = $manhuaFiles | ForEach-Object { @{ file = "manhua/$($_)"; title = Title-FromFilename $_ } }
   }

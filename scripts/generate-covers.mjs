@@ -39,6 +39,19 @@ async function main() {
 
   if (manhwaFiles.length || manhuaFiles.length) {
     data = {
+      // Thêm order/sections để UI luôn render đúng thứ tự (manhwa trước, manhua sau)
+      // ngay cả khi phía client có sort keys.
+      order: ["manhwa", "manhua"],
+      sections: [
+        {
+          type: "manhwa",
+          items: manhwaFiles.map((f) => ({ file: `manhwa/${f}`, title: titleFromFilename(f) })),
+        },
+        {
+          type: "manhua",
+          items: manhuaFiles.map((f) => ({ file: `manhua/${f}`, title: titleFromFilename(f) })),
+        },
+      ],
       manhwa: manhwaFiles.map((f) => ({ file: `manhwa/${f}`, title: titleFromFilename(f) })),
       manhua: manhuaFiles.map((f) => ({ file: `manhua/${f}`, title: titleFromFilename(f) })),
     };
@@ -46,6 +59,14 @@ async function main() {
     // fallback: quét cover/ như script cũ của bạn :contentReference[oaicite:2]{index=2}
     const rootFiles = await readImagesIn(COVER_DIR);
     data = {
+      order: ["manhwa", "manhua"],
+      sections: [
+        {
+          type: "manhwa",
+          items: rootFiles.map((f) => ({ file: f, title: titleFromFilename(f) })),
+        },
+        { type: "manhua", items: [] },
+      ],
       manhwa: rootFiles.map((f) => ({ file: f, title: titleFromFilename(f) })),
       manhua: [],
     };

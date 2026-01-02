@@ -1,14 +1,4 @@
 ﻿{
-    "manhua":  [
-                   {
-                       "file":  "manhua/Global-Martial-Artsjpg.jpg",
-                       "title":  "Global Martial Artsjpg"
-                   },
-                   {
-                       "file":  "manhua/Soul Land IV.jpg",
-                       "title":  "Soul Land IV"
-                   }
-               ],
     "manhwa":  [
                    {
                        "file":  "manhwa/A-Wimps-Strategy-Guide-to-Conquer-the-Tower.webp",
@@ -30,5 +20,59 @@
                        "file":  "manhwa/When-You-Open-the-Door-There-Are-Monsters.jpg",
                        "title":  "When You Open the Door There Are Monsters"
                    }
-               ]
+               ],
+    "sections":  [
+                     {
+                         "items":  [
+                                       {
+                                           "file":  "manhwa/A-Wimps-Strategy-Guide-to-Conquer-the-Tower.webp",
+                                           "title":  "A Wimps Strategy Guide to Conquer the Tower"
+                                       },
+                                       {
+                                           "file":  "manhwa/Bill-The-Blacksmith.webp",
+                                           "title":  "Bill The Blacksmith"
+                                       },
+                                       {
+                                           "file":  "manhwa/Fantasy-Induction-Corps.webp",
+                                           "title":  "Fantasy Induction Corps"
+                                       },
+                                       {
+                                           "file":  "manhwa/Sword-Devouring-Swordmaster.webp",
+                                           "title":  "Sword Devouring Swordmaster"
+                                       },
+                                       {
+                                           "file":  "manhwa/When-You-Open-the-Door-There-Are-Monsters.jpg",
+                                           "title":  "When You Open the Door There Are Monsters"
+                                       }
+                                   ],
+                         "type":  "manhwa"
+                     },
+                     {
+                         "items":  [
+                                       {
+                                           "file":  "manhua/Global-Martial-Artsjpg.jpg",
+                                           "title":  "Global Martial Artsjpg"
+                                       },
+                                       {
+                                           "file":  "manhua/Soul Land IV.jpg",
+                                           "title":  "Soul Land IV"
+                                       }
+                                   ],
+                         "type":  "manhua"
+                     }
+                 ],
+    "manhua":  [
+                   {
+                       "file":  "manhua/Global-Martial-Artsjpg.jpg",
+                       "title":  "Global Martial Artsjpg"
+                   },
+                   {
+                       "file":  "manhua/Soul Land IV.jpg",
+                       "title":  "Soul Land IV"
+                   }
+               ],
+    "order":  [
+                  "manhwa",
+                  "manhua"
+              ]
 }
