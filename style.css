@@ -38,51 +38,51 @@
   border-color: rgba(255,255,255,.28);
 }
 
-/* --- Carousel: swipe friendly --- */
-.carousel-viewport{
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
-}
 
-/* hide scrollbar (optional) */
-.carousel-viewport::-webkit-scrollbar{ height: 0; }
-.carousel-viewport{ scrollbar-width: none; }
 
-.carousel-track{
-  display:flex;
-  gap:14px;
-  padding: 8px 4px;
-}
 
-/* Each cover card */
-.cover-card{
-  scroll-snap-align: center;
-  flex: 0 0 auto;
-  border-radius: 14px;
-  overflow: hidden;
-  position: relative;
-  /* size default (desktop/tablet) */
-  width: 180px;
-}
 
-.cover-card img{
-  width: 100%;
-  height: auto;
-  display:block;
-  aspect-ratio: 2 / 3;     /* giữ tỉ lệ cover đẹp */
-  object-fit: cover;
-}
 
-/* Bigger on mobile */
-@media (max-width: 600px){
-  .carousel-track{ gap: 12px; }
-  .cover-card{
-    width: min(78vw, 320px);  /* phóng to cover trên điện thoại */
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* --- Dots --- */
 .dots{
@@ -435,10 +435,10 @@ h1{
 /* ===== Featured covers carousel (5 per view) ===== */
 .carousel{
   position: relative;
-  display: grid;
-  grid-template-columns: 44px 1fr 44px;
-  align-items: center;
-  gap: 12px;
+   display: block;
+
+
+
   margin-top: 14px;
 }
 
@@ -494,107 +494,107 @@ h1{
 .carousel-viewport{
   overflow: hidden;
   border: 1px solid rgba(var(--fg-rgb), .10);
-  border-radius: 6px;
+  border-radius: 10px;
   background: rgba(0,0,0,.10);
 }
 
 .carousel-track{
   display: flex;
   gap: 14px;
-  padding: 12px;
+  padding: 14px;
   will-change: transform;
   transition: transform .35s ease;
 }
-
-
-
-
-
-
-
-.cover-item{
-  flex: 0 0 calc((100% - (14px * 4)) / 5);
-  position: relative;
-  aspect-ratio: 3 / 4;
-
-  overflow: hidden;
-  border: 1px solid rgba(var(--fg-rgb), .10);
-  border-radius: 6px;
-  background: rgba(0,0,0,.14);
-  text-decoration: none;
-
-
+.carousel-page{
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
+  gap: 14px;
+  min-width: 100%;
 }
 
-.cover-item img{
+.cover-card{
+
+  position: relative;
+  height: clamp(320px, 32vw, 380px);
+  border-radius: 12px;
+  overflow: hidden;
+
+
+
+  text-decoration: none;
+    border: 1px solid rgba(var(--fg-rgb), .14);
+  background: rgba(0,0,0,.14);
+}
+
+.cover-card img{
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transform: scale(1.02);
-  filter: saturate(1.02) contrast(1.02);
+
+
 }
 
-.cover-item::after{
+.cover-card::after{
   content:"";
   position:absolute;
   inset:0;
   background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,0) 55%);
-  opacity: 0;
-  transition: opacity .18s ease;
+
+
 }
 
 .cover-title{
   position:absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
   z-index: 2;
   color: var(--fg);
   font-weight: 800;
   letter-spacing: .2px;
-  line-height: 1.2;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity .18s ease, transform .18s ease;
+ line-height: 1.25;
+
+
+
   text-shadow: 0 6px 18px rgba(0,0,0,.65);
-
-
-
-
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.cover-item:hover::after,
-.cover-item:focus-visible::after{
-  opacity: 1;
-}
-.cover-item:hover .cover-title,
-.cover-item:focus-visible .cover-title{
-  opacity: 1;
-  transform: translateY(0);
-}
 
-.nav-arrow{
-  appearance:none;
-  border: 1px solid rgba(var(--fg-rgb), .14);
-  background: rgba(0,0,0,.18);
-  color: rgba(var(--fg-rgb), .90);
-  height: 44px;
-  width: 44px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 26px;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-}
-.nav-arrow:hover{ background: rgba(0,0,0,.30); }
 
-@media (max-width: 980px){
-  .carousel{ grid-template-columns: 40px 1fr 40px; }
-  .cover-item{ flex-basis: calc((100% - (14px * 2)) / 3); }
-}
-@media (max-width: 560px){
-  .carousel{ grid-template-columns: 36px 1fr 36px; }
-  .cover-item{ flex-basis: calc((100% - (14px * 1)) / 2); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 1200px){
+  .carousel-track{ gap: 12px; padding: 12px; }
+
+
+
+
+
 }
