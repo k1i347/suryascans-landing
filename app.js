@@ -1,7 +1,6 @@
-/* app.js — Featured projects: Manhwa/Manhua + Dots + Mobile-friendly carousel */
 (() => {
   // ===== Config =====
-  const COVERS_JSON_URL = "./cover/covers.json"; // relative để không lỗi khi deploy subfolder
+  const COVERS_JSON_URL = "./cover/covers.json"; // dùng relative để không lỗi khi deploy subfolder
   const COVER_BASE_PATH = "./cover/";            // ảnh sẽ là ./cover/<file>
   const DEFAULT_HREF = "https://vanthucac.xyz";  // click cover mở reading site
 
@@ -12,20 +11,18 @@
   const hint = document.getElementById("coversHint");
   const tabs = document.querySelectorAll(".projects-controls .pill");
 
-  // Footer year
+  // Footer year (nếu bạn có 1 hoặc nhiều chỗ hiển thị năm)
   document.querySelectorAll("#year, .year").forEach((el) => {
-    el.textContent = String(new Date().getFullYear());
+    el.textContent = new Date().getFullYear();
   });
 
-  // Nếu trang chưa có section carousel thì thoát
+  // Nếu trang chưa gắn section carousel mới thì thôi
   if (!viewport || !track || !dotsWrap || !hint) return;
 
-  // ===== State =====
   let featuredData = { manhwa: [], manhua: [] };
   let currentType = "manhwa";
   let currentPage = 0;
   let columns = 5;
-  let pagesCount = 1;
 
   // ===== Helpers =====
   function stripBom(text) {
@@ -36,44 +33,12 @@
     return typeof v === "string" && v.trim().length > 0;
   }
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
   function titleFromFilename(filename) {
     const base = filename.replace(/\.[^.]+$/, "");
     return decodeURIComponent(base)
       .replace(/[-_]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
-  }
-
-  function normalizeItem(item) {
-    // Cho phép format cũ: ["a.jpg","b.webp"...]
-    if (typeof item === "string") {
-      if (!isNonEmptyString(item)) return null;
-      return {
-        file: item.trim(),
-        title: titleFromFilename(item.trim()),
-        href: DEFAULT_HREF,
-      };
-    }
-
-    // Format mới: {file,title,href?}
-    if (item && typeof item === "object") {
-      const file = isNonEmptyString(item.file) ? item.file.trim() : "";
-      if (!file) return null;
-      const title = isNonEmptyString(item.title) ? item.title.trim() : titleFromFilename(file);
-      const href = isNonEmptyString(item.href) ? item.href.trim() : DEFAULT_HREF;
-      return { file, title, href };
-    }
-
-    return null;
   }
 
   function normalizeRawJson(raw) {
@@ -87,10 +52,12 @@
       };
     }
 
-    // Format cũ: ["file1.jpg","file2.webp"...] => mặc định là manhwa
+    // Format cũ: ["a.webp","b.jpg"] -> coi như manhwa
     if (Array.isArray(raw)) {
       return {
-        manhwa: raw.map(normalizeItem).filter(Boolean),
+        manhwa: raw
+          .filter(isNonEmptyString)
+          .map((f) => ({ file: f, title: titleFromFilename(f), href: DEFAULT_HREF })),
         manhua: [],
       };
     }
@@ -98,9 +65,29 @@
     return { manhwa: [], manhua: [] };
   }
 
+  function normalizeItem(it) {
+    // it có thể là string hoặc object
+    if (isNonEmptyString(it)) {
+      return { file: it, title: titleFromFilename(it), href: DEFAULT_HREF };
+    }
+    if (it && typeof it === "object") {
+      const file = isNonEmptyString(it.file) ? it.file : null;
+      if (!file) return null;
+
+      const title = isNonEmptyString(it.title) ? it.title : titleFromFilename(file);
+      const href = isNonEmptyString(it.href) ? it.href : DEFAULT_HREF;
+
+      return { file, title, href };
+    }
+    return null;
+  }
+
   async function loadCoversJson() {
     const res = await fetch(COVERS_JSON_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+    // đọc text để strip BOM, rồi parse
     const text = stripBom(await res.text());
     return JSON.parse(text);
   }
@@ -124,18 +111,64 @@
     });
   }
 
-  function getColumns() {
+    function getColumns() {
     const w = window.innerWidth;
     if (w <= 680) return 2;
     if (w <= 980) return 3;
     if (w <= 1200) return 4;
     return 5;
-  }
+    if (io) io.disconnect();
+    const cards = track.querySelectorAll(".cover-card");
+    if (!cards.length) return;
 
-  function chunk(items, size) {
-    const out = [];
-    for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-    return out;
+    // IntersectionObserver để bắt card nào đang ở giữa viewport
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          let best = null;
+          for (const e of entries) {
+            if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+          }
+          if (best && best.isIntersecting) {
+            const idx = Number(best.target.dataset.index);
+            if (!Number.isNaN(idx)) setActiveDot(idx);
+          }
+        },
+        {
+          root: viewport,
+          threshold: [0.5, 0.65, 0.8],
+        }
+      );
+
+      cards.forEach((c) => io.observe(c));
+      return;
+    }
+
+    // Fallback nếu browser quá cũ: dựa trên scroll position
+    viewport.addEventListener(
+      "scroll",
+      () => {
+        const rect = viewport.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        cards.forEach((card) => {
+          const r = card.getBoundingClientRect();
+          const cardCenter = r.left + r.width / 2;
+          const dist = Math.abs(cardCenter - centerX);
+          const idx = Number(card.dataset.index);
+          if (dist < bestDist && !Number.isNaN(idx)) {
+            bestDist = dist;
+            bestIdx = idx;
+          }
+        });
+
+        setActiveDot(bestIdx);
+      },
+      { passive: true }
+    );
   }
 
   function renderDots(count) {
@@ -144,38 +177,40 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "dot" + (i === 0 ? " is-active" : "");
-      b.setAttribute("aria-label", `Go to page ${i + 1}`);
+       b.setAttribute("aria-label", `Go to page ${i + 1}`);
       b.dataset.index = String(i);
-      b.addEventListener("click", () => goToPage(i));
+      b.addEventListener("click", () => {
+          goToPage(i);
+
+
+
+      });
       dotsWrap.appendChild(b);
     }
-
-    // Nếu chỉ 1 trang thì vô hiệu dots cho “đỡ gây hiểu nhầm”
-    dotsWrap.style.pointerEvents = count > 1 ? "auto" : "none";
   }
 
-  function renderCarousel(items, keepItemIndex = 0) {
-    columns = getColumns();
+  function renderCarousel(items) {
+    // items: [{file,title,href}]
+  columns = getColumns();
+    const pages = [];
+    for (let i = 0; i < items.length; i += columns) {
+      pages.push(items.slice(i, i + columns));
+    }
 
-    const pages = chunk(items, columns);
-    pagesCount = Math.max(1, pages.length);
-
-    // Tính page phù hợp nếu đang giữ vị trí theo item index
-    currentPage = Math.floor(Math.max(0, keepItemIndex) / columns);
-    if (currentPage > pagesCount - 1) currentPage = pagesCount - 1;
+    currentPage = 0;
 
     track.innerHTML = pages
       .map((pageItems, pageIndex) => {
         const cards = pageItems
-          .map((it) => {
-            const imgSrc = `${COVER_BASE_PATH}${encodeURI(it.file)}`;
-            const safeTitle = escapeHtml(it.title || "Untitled");
-            const href = escapeHtml(it.href || DEFAULT_HREF);
+          .map((it, idx) => {
+            const imgSrc = `${COVER_BASE_PATH}${it.file}`;
+            const safeTitle = it.title || `Item ${idx + 1}`;
+            const href = it.href || DEFAULT_HREF;
 
             return `
               <a class="cover-card" role="listitem"
                  href="${href}" target="_blank" rel="noopener"
-                 aria-label="${safeTitle}">
+                 data-index="${idx}" aria-label="${safeTitle}">
                 <img src="${imgSrc}" alt="${safeTitle}" loading="lazy" />
                 <span class="cover-title">${safeTitle}</span>
               </a>
@@ -187,77 +222,35 @@
       })
       .join("");
 
-    // reset transform theo currentPage
-    track.style.transform = `translateX(${-currentPage * 100}%)`;
+    // reset scroll về đầu
+    viewport.scrollLeft = 0;
+      track.style.transform = "translateX(0)";
 
-    renderDots(pagesCount);
+  renderDots(pages.length || 1);
     setActiveDot(currentPage);
 
-    if (items.length) {
-      setHint(
-        `${items.length} featured ${currentType} series • Page ${currentPage + 1}/${pagesCount}`
-      );
-    } else {
-      setHint(`No featured ${currentType} items yet.`);
-    }
+    setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
   }
+    // If only one page, disable pointer events on dots for clarity
+    dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
+  
 
   function goToPage(pageIndex) {
-    const maxPage = pagesCount - 1;
+    const pages = track.querySelectorAll(".carousel-page");
+    if (!pages.length) return;
+    const maxPage = pages.length - 1;
     currentPage = Math.max(0, Math.min(pageIndex, maxPage));
-    track.style.transform = `translateX(${-currentPage * 100}%)`;
+    const offset = -currentPage * 100;
+    track.style.transform = `translateX(${offset}%)`;
     setActiveDot(currentPage);
-
-    const items = featuredData?.[currentType] || [];
-    if (items.length) {
-      setHint(
-        `${items.length} featured ${currentType} series • Page ${currentPage + 1}/${pagesCount}`
-      );
-    }
   }
-
-  function switchType(type, keepItemIndex = 0) {
+  function switchType(type) {
     currentType = type;
     setActiveTab(type);
 
-    const items = featuredData?.[type] || [];
-    renderCarousel(items, keepItemIndex);
+    const items = (featuredData && featuredData[type]) ? featuredData[type] : [];
+    renderCarousel(items);
   }
-
-  // ===== Swipe (mobile) =====
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchStartT = 0;
-
-  viewport.addEventListener(
-    "touchstart",
-    (e) => {
-      if (!e.touches || e.touches.length !== 1) return;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartT = Date.now();
-    },
-    { passive: true }
-  );
-
-  viewport.addEventListener(
-    "touchend",
-    (e) => {
-      if (!e.changedTouches || e.changedTouches.length !== 1) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      const dt = Date.now() - touchStartT;
-
-      // chỉ bắt swipe ngang rõ ràng
-      if (Math.abs(dx) < 40) return;
-      if (Math.abs(dy) > Math.abs(dx) * 0.8) return;
-      if (dt > 700) return;
-
-      if (dx < 0) goToPage(currentPage + 1);
-      else goToPage(currentPage - 1);
-    },
-    { passive: true }
-  );
 
   // ===== Init =====
   async function init() {
@@ -265,15 +258,11 @@
       const raw = await loadCoversJson();
       featuredData = normalizeRawJson(raw);
 
-      // Nếu manhwa rỗng mà manhua có -> mở manhua
-      if (
-        (!featuredData.manhwa || featuredData.manhwa.length === 0) &&
-        featuredData.manhua &&
-        featuredData.manhua.length > 0
-      ) {
-        switchType("manhua", 0);
+      // Nếu manhwa rỗng mà manhua có -> mở manhua luôn
+      if ((!featuredData.manhwa || featuredData.manhwa.length === 0) && featuredData.manhua && featuredData.manhua.length > 0) {
+        switchType("manhua");
       } else {
-        switchType("manhwa", 0);
+        switchType("manhwa");
       }
 
       // tab events
@@ -281,24 +270,20 @@
         btn.addEventListener("click", () => {
           const type = btn.dataset.type;
           if (type === "manhwa" || type === "manhua") {
-            switchType(type, 0);
+            switchType(type);
           }
         });
       });
-
-      // resize => rerender nếu đổi columns, giữ vị trí item đầu trang hiện tại
-      window.addEventListener("resize", () => {
+            window.addEventListener("resize", () => {
         const newCols = getColumns();
         if (newCols !== columns) {
-          const keepItemIndex = currentPage * columns;
-          switchType(currentType, keepItemIndex);
+          switchType(currentType);
         }
       });
     } catch (err) {
       console.error("[covers] load failed:", err);
-      setHint(
-        "Could not load /cover/covers.json. Make sure it exists and contains valid JSON."
-      );
+      // giữ đúng style thông báo bạn đang thấy
+      setHint("Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.");
     }
   }
 
