@@ -23,6 +23,8 @@
   let currentType = "manhwa";
   let currentPage = 0;
   let columns = 5;
+  let io = null;
+  let fallbackScrollHandler = null;
 
   // ===== Helpers =====
   function stripBom(text) {
@@ -111,15 +113,23 @@
     });
   }
 
-    function getColumns() {
+  function getColumns() {
     const w = window.innerWidth;
     if (w <= 680) return 2;
     if (w <= 980) return 3;
     if (w <= 1200) return 4;
     return 5;
+  }
+
+  function attachObservers() {
     if (io) io.disconnect();
-    const cards = track.querySelectorAll(".cover-card");
-    if (!cards.length) return;
+     if (fallbackScrollHandler) {
+      viewport.removeEventListener("scroll", fallbackScrollHandler);
+      fallbackScrollHandler = null;
+    }
+
+    const pages = track.querySelectorAll(".carousel-page");
+    if (!pages.length) return;
 
     // IntersectionObserver để bắt card nào đang ở giữa viewport
     if ("IntersectionObserver" in window) {
@@ -130,7 +140,7 @@
             if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
           }
           if (best && best.isIntersecting) {
-            const idx = Number(best.target.dataset.index);
+            const idx = Number(best.target.dataset.page);
             if (!Number.isNaN(idx)) setActiveDot(idx);
           }
         },
@@ -140,35 +150,32 @@
         }
       );
 
-      cards.forEach((c) => io.observe(c));
+      pages.forEach((page) => io.observe(page));
       return;
     }
 
     // Fallback nếu browser quá cũ: dựa trên scroll position
-    viewport.addEventListener(
-      "scroll",
-      () => {
-        const rect = viewport.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
+    fallbackScrollHandler = () => {
+      const rect = viewport.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
 
-        let bestIdx = 0;
-        let bestDist = Infinity;
+      let bestIdx = 0;
+      let bestDist = Infinity;
 
-        cards.forEach((card) => {
-          const r = card.getBoundingClientRect();
-          const cardCenter = r.left + r.width / 2;
-          const dist = Math.abs(cardCenter - centerX);
-          const idx = Number(card.dataset.index);
-          if (dist < bestDist && !Number.isNaN(idx)) {
-            bestDist = dist;
-            bestIdx = idx;
-          }
-        });
+      pages.forEach((page) => {
+        const r = page.getBoundingClientRect();
+        const cardCenter = r.left + r.width / 2;
+        const dist = Math.abs(cardCenter - centerX);
+        const idx = Number(page.dataset.page);
+        if (dist < bestDist && !Number.isNaN(idx)) {
+          bestDist = dist;
+          bestIdx = idx;
+        }
+      });
 
-        setActiveDot(bestIdx);
-      },
-      { passive: true }
-    );
+      setActiveDot(bestIdx);
+    };
+    viewport.addEventListener("scroll", fallbackScrollHandler, { passive: true });
   }
 
   function renderDots(count) {
@@ -191,7 +198,7 @@
 
   function renderCarousel(items) {
     // items: [{file,title,href}]
-  columns = getColumns();
+    columns = getColumns();
     const pages = [];
     for (let i = 0; i < items.length; i += columns) {
       pages.push(items.slice(i, i + columns));
@@ -224,16 +231,18 @@
 
     // reset scroll về đầu
     viewport.scrollLeft = 0;
-      track.style.transform = "translateX(0)";
+    track.style.transform = "translateX(0)";
 
-  renderDots(pages.length || 1);
+    renderDots(pages.length || 1);
     setActiveDot(currentPage);
 
-    setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
-  }
+    
     // If only one page, disable pointer events on dots for clarity
     dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
-  
+    setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
+
+    attachObservers();
+  }
 
   function goToPage(pageIndex) {
     const pages = track.querySelectorAll(".carousel-page");
