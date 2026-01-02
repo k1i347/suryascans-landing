@@ -309,6 +309,29 @@ h1{
 .covers::-webkit-scrollbar{ height: 8px; }
 .covers::-webkit-scrollbar-thumb{ background: rgba(var(--fg-rgb), .14); }
 
+.project-groups{
+  display: grid;
+  gap: 26px;
+  margin-top: 18px;
+}
+
+.project-group-head{
+  display:flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-group-head h3{
+  margin: 0;
+  font-size: 20px;
+}
+
+.carousel-hint{
+  margin-top: 10px;
+}
+
+
 .cover{
   flex: 0 0 auto;
   width: min(220px, 42vw);

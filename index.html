@@ -65,26 +65,44 @@
     <p class="muted">A quick preview of series we’re actively featuring right now.</p>
   </div>
 
-  <!-- Category switch -->
-  <div class="projects-controls" role="tablist" aria-label="Project categories">
-    <button class="pill is-active" type="button" role="tab" aria-selected="true" data-type="manhwa">
-      Manhwa
-    </button>
-    <button class="pill" type="button" role="tab" aria-selected="false" data-type="manhua">
-      Manhua
-    </button>
-  </div>
 
-  <div class="carousel" aria-label="Featured covers carousel">
-    <div class="carousel-viewport" id="carouselViewport">
-      <div class="carousel-track" id="coversTrack" role="list"></div>
+<div class="project-groups">
+    <div class="project-group">
+      <div class="project-group-head">
+        <h3>Manhwa</h3>
+        <p class="muted">Featured manhwa we’re publishing right now.</p>
+      </div>
+
+      <div class="carousel" aria-label="Featured manhwa carousel">
+        <div class="carousel-viewport" id="carouselViewport-manhwa">
+          <div class="carousel-track" id="coversTrack-manhwa" role="list"></div>
+        </div>
+
+        <!-- Dots -->
+        <div class="dots" id="carouselDots-manhwa" aria-label="Carousel pagination"></div>
+
+        <p class="muted carousel-hint" id="coversHint-manhwa"></p>
+      </div>
     </div>
 
-    <!-- Dots -->
-    <div class="dots" id="carouselDots" aria-label="Carousel pagination"></div>
-  </div>
+  <div class="project-group">
+      <div class="project-group-head">
+        <h3>Manhua</h3>
+        <p class="muted">Featured manhua series in our lineup.</p>
+      </div>
 
-  <p class="muted" id="coversHint" style="margin-top:10px;"></p>
+      <div class="carousel" aria-label="Featured manhua carousel">
+        <div class="carousel-viewport" id="carouselViewport-manhua">
+          <div class="carousel-track" id="coversTrack-manhua" role="list"></div>
+        </div>
+
+        <!-- Dots -->
+        <div class="dots" id="carouselDots-manhua" aria-label="Carousel pagination"></div>
+
+        <p class="muted carousel-hint" id="coversHint-manhua"></p>
+      </div>
+    </div>
+  </div>
 </section>
 
     <!-- INTRODUCTION -->

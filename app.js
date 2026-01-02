@@ -5,27 +5,43 @@
   const DEFAULT_HREF = "https://vanthucac.xyz";  // click cover mở reading site
 
   // ===== DOM =====
-  const viewport = document.getElementById("carouselViewport");
-  const track = document.getElementById("coversTrack");
-  const dotsWrap = document.getElementById("carouselDots");
-  const hint = document.getElementById("coversHint");
-  const tabs = document.querySelectorAll(".projects-controls .pill");
+ const controllers = {
+    manhwa: createController("manhwa"),
+    manhua: createController("manhua"),
+  };
+
+  const hasCarousels = Object.values(controllers).some(Boolean);
+  if (!hasCarousels) return;
 
   // Footer year (nếu bạn có 1 hoặc nhiều chỗ hiển thị năm)
   document.querySelectorAll("#year, .year").forEach((el) => {
     el.textContent = new Date().getFullYear();
   });
 
-  // Nếu trang chưa gắn section carousel mới thì thôi
-  if (!viewport || !track || !dotsWrap || !hint) return;
-
+ 
   let featuredData = { manhwa: [], manhua: [] };
-  let currentType = "manhwa";
-  let currentPage = 0;
-  let columns = 5;
-  let io = null;
-  let fallbackScrollHandler = null;
+  let lastColumns = getColumns();
 
+  function createController(type) {
+    const viewport = document.getElementById(`carouselViewport-${type}`);
+    const track = document.getElementById(`coversTrack-${type}`);
+    const dotsWrap = document.getElementById(`carouselDots-${type}`);
+    const hint = document.getElementById(`coversHint-${type}`);
+
+    if (!viewport || !track || !dotsWrap || !hint) return null;
+
+    return {
+      type,
+      viewport,
+      track,
+      dotsWrap,
+      hint,
+      currentPage: 0,
+      columns: getColumns(),
+      io: null,
+      fallbackScrollHandler: null,
+    };
+  }
   // ===== Helpers =====
   function stripBom(text) {
     return text.replace(/^\uFEFF/, "");
@@ -94,20 +110,14 @@
     return JSON.parse(text);
   }
 
-  function setActiveTab(type) {
-    tabs.forEach((btn) => {
-      const active = btn.dataset.type === type;
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-selected", active ? "true" : "false");
-    });
+  function setHint(ctrl, text) {
+    if (!ctrl) return;
+    ctrl.hint.textContent = text || "";
   }
 
-  function setHint(text) {
-    hint.textContent = text || "";
-  }
-
-  function setActiveDot(index) {
-    dotsWrap.querySelectorAll(".dot").forEach((d, i) => {
+  function setActiveDot(ctrl, index) {
+    if (!ctrl) return;
+      ctrl.dotsWrap.querySelectorAll(".dot").forEach((d, i) => {
       d.classList.toggle("is-active", i === index);
       d.setAttribute("aria-current", i === index ? "true" : "false");
     });
@@ -133,7 +143,7 @@
 
     // IntersectionObserver để bắt card nào đang ở giữa viewport
     if ("IntersectionObserver" in window) {
-      io = new IntersectionObserver(
+      ctrl.io = new IntersectionObserver(
         (entries) => {
           let best = null;
           for (const e of entries) {
@@ -141,7 +151,7 @@
           }
           if (best && best.isIntersecting) {
             const idx = Number(best.target.dataset.page);
-            if (!Number.isNaN(idx)) setActiveDot(idx);
+            if (!Number.isNaN(idx)) setActiveDot(ctrl, idx);
           }
         },
         {
@@ -150,12 +160,12 @@
         }
       );
 
-      pages.forEach((page) => io.observe(page));
+        pages.forEach((page) => ctrl.io.observe(page));
       return;
     }
 
     // Fallback nếu browser quá cũ: dựa trên scroll position
-    fallbackScrollHandler = () => {
+      ctrl.fallbackScrollHandler = () => {
       const rect = viewport.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
 
@@ -173,40 +183,40 @@
         }
       });
 
-      setActiveDot(bestIdx);
+      setActiveDot(ctrl, bestIdx)
     };
-    viewport.addEventListener("scroll", fallbackScrollHandler, { passive: true });
+     viewport.addEventListener("scroll", ctrl.fallbackScrollHandler, { passive: true });
   }
 
-  function renderDots(count) {
-    dotsWrap.innerHTML = "";
+  function renderDots(ctrl, count) {
+    if (!ctrl) return;
+    ctrl.dotsWrap.innerHTML = "";
     for (let i = 0; i < count; i++) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "dot" + (i === 0 ? " is-active" : "");
-       b.setAttribute("aria-label", `Go to page ${i + 1}`);
+      b.setAttribute("aria-label", `Go to page ${i + 1}`);
       b.dataset.index = String(i);
       b.addEventListener("click", () => {
-          goToPage(i);
-
-
-
+      goToPage(ctrl, i);
       });
-      dotsWrap.appendChild(b);
+      ctrl.dotsWrap.appendChild(b);
     }
   }
 
-  function renderCarousel(items) {
-    // items: [{file,title,href}]
-    columns = getColumns();
-    const pages = [];
-    for (let i = 0; i < items.length; i += columns) {
+    function renderCarousel(ctrl, items) {
+      if (!ctrl) return;
+      // items: [{file,title,href}]
+      const columns = getColumns();
+      ctrl.columns = columns;
+      const pages = [];
+      for (let i = 0; i < items.length; i += columns) {
       pages.push(items.slice(i, i + columns));
     }
 
-    currentPage = 0;
+    ctrl.currentPage = 0;
 
-    track.innerHTML = pages
+    ctrl.track.innerHTML = pages
       .map((pageItems, pageIndex) => {
         const cards = pageItems
           .map((it, idx) => {
@@ -230,35 +240,41 @@
       .join("");
 
     // reset scroll về đầu
-    viewport.scrollLeft = 0;
-    track.style.transform = "translateX(0)";
+    ctrl.viewport.scrollLeft = 0;
+    ctrl.track.style.transform = "translateX(0)";
 
-    renderDots(pages.length || 1);
-    setActiveDot(currentPage);
 
-    
+    renderDots(ctrl, pages.length || 1);
+    setActiveDot(ctrl, ctrl.currentPage);
     // If only one page, disable pointer events on dots for clarity
-    dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
-    setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
+    ctrl.dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
+    setHint(
+      ctrl,
+      items.length
+        ? `${items.length} featured ${ctrl.type} series`
+        : `No featured ${ctrl.type} items yet.`
+    );
 
-    attachObservers();
+    attachObservers(ctrl);
+ 
   }
 
-  function goToPage(pageIndex) {
-    const pages = track.querySelectorAll(".carousel-page");
+   function goToPage(ctrl, pageIndex) {
+    if (!ctrl) return;
+    const pages = ctrl.track.querySelectorAll(".carousel-page");
     if (!pages.length) return;
     const maxPage = pages.length - 1;
-    currentPage = Math.max(0, Math.min(pageIndex, maxPage));
-    const offset = -currentPage * 100;
-    track.style.transform = `translateX(${offset}%)`;
-    setActiveDot(currentPage);
+    ctrl.currentPage = Math.max(0, Math.min(pageIndex, maxPage));
+    const offset = -ctrl.currentPage * 100;
+    ctrl.track.style.transform = `translateX(${offset}%)`;
+    setActiveDot(ctrl, ctrl.currentPage);
   }
-  function switchType(type) {
-    currentType = type;
-    setActiveTab(type);
-
-    const items = (featuredData && featuredData[type]) ? featuredData[type] : [];
-    renderCarousel(items);
+    function renderAllCarousels() {
+    Object.values(controllers).forEach((ctrl) => {
+      if (!ctrl) return;
+      const items = (featuredData && featuredData[ctrl.type]) ? featuredData[ctrl.type] : [];
+      renderCarousel(ctrl, items);
+    });
   }
 
   // ===== Init =====
@@ -267,32 +283,21 @@
       const raw = await loadCoversJson();
       featuredData = normalizeRawJson(raw);
 
-      // Nếu manhwa rỗng mà manhua có -> mở manhua luôn
-      if ((!featuredData.manhwa || featuredData.manhwa.length === 0) && featuredData.manhua && featuredData.manhua.length > 0) {
-        switchType("manhua");
-      } else {
-        switchType("manhwa");
-      }
+      renderAllCarousels();
 
-      // tab events
-      tabs.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const type = btn.dataset.type;
-          if (type === "manhwa" || type === "manhua") {
-            switchType(type);
-          }
-        });
-      });
-            window.addEventListener("resize", () => {
+      window.addEventListener("resize", () => {
         const newCols = getColumns();
-        if (newCols !== columns) {
-          switchType(currentType);
+        if (newCols !== lastColumns) {
+          lastColumns = newCols;
+          renderAllCarousels();
         }
       });
     } catch (err) {
       console.error("[covers] load failed:", err);
       // giữ đúng style thông báo bạn đang thấy
-      setHint("Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.");
+      Object.values(controllers).forEach((ctrl) => {
+        setHint(ctrl, "Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.");
+      });    
     }
   }
 
