@@ -11,18 +11,45 @@ if (!(Test-Path $dir)) {
 # Supported extensions
 $exts = @(".jpg", ".jpeg", ".png", ".webp", ".gif")
 
-# Get all files, then filter by extension (reliable)
-$files = Get-ChildItem -Path $dir -File |
-  Where-Object { $exts -contains $_.Extension.ToLower() } |
-  Sort-Object Name |
-  Select-Object -ExpandProperty Name
+function Get-Images($folder) {
+  if (!(Test-Path $folder)) {
+    return @()
+  }
 
-if (-not $files -or $files.Count -eq 0) {
-  Write-Host "[WARN] No images found in cover/. Writing empty array."
-  $files = @()
+  return Get-ChildItem -Path $folder -File |
+    Where-Object { $exts -contains $_.Extension.ToLower() } |
+    Sort-Object Name |
+    Select-Object -ExpandProperty Name
 }
 
-# Write JSON
-($files | ConvertTo-Json -Depth 1) | Out-File -FilePath $out -Encoding utf8
+function Title-FromFilename($filename) {
+  $base = [System.IO.Path]::GetFileNameWithoutExtension($filename)
+  $title = $base -replace "[-_]+", " " -replace "\s+", " "
+  return $title.Trim()
+}
 
-Write-Host "[OK] Wrote $out ($($files.Count) files)"
+# Ưu tiên quét cover/manhwa và cover/manhua. Nếu không có ảnh nào, fallback quét trực tiếp cover/
+$manhwaDir = Join-Path $dir "manhwa"
+$manhuaDir = Join-Path $dir "manhua"
+
+$manhwaFiles = Get-Images $manhwaDir
+$manhuaFiles = Get-Images $manhuaDir
+
+if (($manhwaFiles.Count -eq 0) -and ($manhuaFiles.Count -eq 0)) {
+  $rootFiles = Get-Images $dir
+  $data = @{
+    manhwa = $rootFiles | ForEach-Object { @{ file = $_; title = Title-FromFilename $_ } }
+    manhua = @()
+  }
+  $counts = @{ manhwa = $rootFiles.Count; manhua = 0 }
+} else {
+  $data = @{
+    manhwa = $manhwaFiles | ForEach-Object { @{ file = "manhwa/$($_)"; title = Title-FromFilename $_ } }
+    manhua = $manhuaFiles | ForEach-Object { @{ file = "manhua/$($_)"; title = Title-FromFilename $_ } }
+  }
+  $counts = @{ manhwa = $manhwaFiles.Count; manhua = $manhuaFiles.Count }
+}
+
+($data | ConvertTo-Json -Depth 5) | Out-File -FilePath $out -Encoding utf8
+
+Write-Host ("[OK] Wrote {0} (manhwa: {1}, manhua: {2})" -f $out, $counts.manhwa, $counts.manhua)
