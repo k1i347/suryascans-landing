@@ -15,6 +15,100 @@
   --pad: 28px;
 }
 
+/* --- Projects controls (Manhwa/Manhua) --- */
+.projects-controls{
+  display:flex;
+  gap:10px;
+  margin: 10px 0 14px;
+  flex-wrap: wrap;
+}
+
+.pill{
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: inherit;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pill.is-active{
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.28);
+}
+
+/* --- Carousel: swipe friendly --- */
+.carousel-viewport{
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+/* hide scrollbar (optional) */
+.carousel-viewport::-webkit-scrollbar{ height: 0; }
+.carousel-viewport{ scrollbar-width: none; }
+
+.carousel-track{
+  display:flex;
+  gap:14px;
+  padding: 8px 4px;
+}
+
+/* Each cover card */
+.cover-card{
+  scroll-snap-align: center;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  /* size default (desktop/tablet) */
+  width: 180px;
+}
+
+.cover-card img{
+  width: 100%;
+  height: auto;
+  display:block;
+  aspect-ratio: 2 / 3;     /* giữ tỉ lệ cover đẹp */
+  object-fit: cover;
+}
+
+/* Bigger on mobile */
+@media (max-width: 600px){
+  .carousel-track{ gap: 12px; }
+  .cover-card{
+    width: min(78vw, 320px);  /* phóng to cover trên điện thoại */
+  }
+}
+
+/* --- Dots --- */
+.dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap: 8px;
+  margin-top: 10px;
+  user-select:none;
+}
+
+.dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  background: rgba(255,255,255,.35);
+  padding: 0;
+}
+
+.dot.is-active{
+  width: 22px;                 /* active dot dài hơn để dễ nhận biết */
+  background: rgba(255,255,255,.85);
+}
+
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }

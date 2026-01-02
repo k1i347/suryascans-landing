@@ -22,6 +22,42 @@ function filenameToTitle(filename) {
   // optional: keep as-is (looks clean if you name files properly)
   return spaced;
 }
+async function loadFeatured() {
+  const res = await fetch("./cover/covers.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("Cannot load covers.json");
+  return await res.json();
+}
+
+function renderCarousel(items) {
+  // items: [{file,title}]
+  track.innerHTML = items.map((it, idx) => `
+    <a class="cover-card" role="listitem"
+       href="https://vanthucac.xyz" target="_blank" rel="noopener"
+       data-index="${idx}" aria-label="${it.title}">
+      <img src="./cover/${it.file}" alt="${it.title}" loading="lazy"/>
+    </a>
+  `).join("");
+
+  // ... (phần dots + observer y như mình gửi trước)
+}
+
+let featuredData;
+
+async function init() {
+  featuredData = await loadFeatured();
+  renderCarousel(featuredData.manhwa || []);
+  // setActiveTab("manhwa") ...
+}
+
+tabs.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const type = btn.dataset.type; // "manhwa" | "manhua"
+    renderCarousel((featuredData && featuredData[type]) || []);
+  });
+});
+
+init();
+
 
 function clearTimer() {
   if (timer) {

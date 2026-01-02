@@ -61,24 +61,34 @@
     </section>
 
     <!-- FEATURED PROJECTS STRIP -->
-    <section class="projects-strip" id="projects" aria-label="Featured projects">
-      <div class="section-head">
-        <h2>Featured projects</h2>
-        <p class="muted">A quick preview of series we’re actively featuring right now.</p>
-      </div>
+<!-- FEATURED PROJECTS STRIP -->
+<section class="projects-strip" id="projects" aria-label="Featured projects">
+  <div class="section-head">
+    <h2>Featured projects</h2>
+    <p class="muted">A quick preview of series we’re actively featuring right now.</p>
+  </div>
 
-      <div class="carousel" aria-label="Featured covers carousel">
-        <button class="nav-arrow left" type="button" aria-label="Previous" id="prevBtn">‹</button>
+  <!-- Category switch -->
+  <div class="projects-controls" role="tablist" aria-label="Project categories">
+    <button class="pill is-active" type="button" role="tab" aria-selected="true" data-type="manhwa">
+      Manhwa
+    </button>
+    <button class="pill" type="button" role="tab" aria-selected="false" data-type="manhua">
+      Manhua
+    </button>
+  </div>
 
-        <div class="carousel-viewport" id="carouselViewport">
-          <div class="carousel-track" id="coversTrack" role="list"></div>
-        </div>
+  <div class="carousel" aria-label="Featured covers carousel">
+    <div class="carousel-viewport" id="carouselViewport">
+      <div class="carousel-track" id="coversTrack" role="list"></div>
+    </div>
 
-        <button class="nav-arrow right" type="button" aria-label="Next" id="nextBtn">›</button>
-      </div>
+    <!-- Dots -->
+    <div class="dots" id="carouselDots" aria-label="Carousel pagination"></div>
+  </div>
 
-      <p class="muted" id="coversHint" style="margin-top:10px;"></p>
-    </section>
+  <p class="muted" id="coversHint" style="margin-top:10px;"></p>
+</section>
 
     <!-- INTRODUCTION -->
     <section class="section" id="introduction">
