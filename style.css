@@ -401,7 +401,15 @@ h1{
   align-items:center;
   justify-content:space-between;
   padding: 10px 0;
+  color: var(--fg);
+  text-decoration: none;
   border-bottom: 1px solid rgba(var(--fg-rgb), .10);
+}
+.genre:hover,
+.genre:focus-visible{
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom-color: rgba(var(--accent-rgb), .45);
 }
 .count{
   color: var(--muted);
