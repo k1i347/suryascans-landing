@@ -1,8 +1,9 @@
 (() => {
   // ===== Config =====
   const COVERS_JSON_URL = "./cover/covers.json"; // dùng relative để không lỗi khi deploy subfolder
-  const COVER_BASE_PATH = "./cover/";            // ảnh sẽ là ./cover/<file>
-  const DEFAULT_HREF = "https://vanthucac.xyz";  // click cover mở reading site
+  const COVER_BASE_PATH = "./cover/"; // ảnh sẽ là ./cover/<file>
+  const DEFAULT_HREF = "https://vanthucac.xyz"; // click cover mở reading site
+  const AUTO_PLAY_DELAY = 2000; // ms
 
   // ===== DOM =====
  const controllers = {
@@ -30,7 +31,7 @@
 
     if (!viewport || !track || !dotsWrap || !hint) return null;
 
-    return {
+    const ctrl = {
       type,
       viewport,
       track,
@@ -40,7 +41,17 @@
       columns: getColumns(),
       io: null,
       fallbackScrollHandler: null,
+      autoTimer: null,
+      pageCount: 0,
     };
+     // Tạm dừng auto-play khi người dùng hover/focus
+    const pauseEvents = ["mouseenter", "focusin", "touchstart"];
+    const resumeEvents = ["mouseleave", "focusout", "touchend", "touchcancel"];
+
+    pauseEvents.forEach((evt) => viewport.addEventListener(evt, () => stopAutoPlay(ctrl)));
+    resumeEvents.forEach((evt) => viewport.addEventListener(evt, () => startAutoPlay(ctrl)));
+
+    return ctrl;
   }
   // ===== Helpers =====
   function stripBom(text) {
@@ -131,11 +142,14 @@
     return 5;
   }
 
-  function attachObservers() {
-    if (io) io.disconnect();
-     if (fallbackScrollHandler) {
-      viewport.removeEventListener("scroll", fallbackScrollHandler);
-      fallbackScrollHandler = null;
+  function attachObservers(ctrl) {
+    if (!ctrl) return;
+    const { viewport, track } = ctrl;
+
+    if (ctrl.io) ctrl.io.disconnect();
+    if (ctrl.fallbackScrollHandler) {
+      viewport.removeEventListener("scroll", ctrl.fallbackScrollHandler);
+      ctrl.fallbackScrollHandler = null;
     }
 
     const pages = track.querySelectorAll(".carousel-page");
@@ -183,7 +197,7 @@
         }
       });
 
-      setActiveDot(ctrl, bestIdx)
+      setActiveDot(ctrl, bestIdx);
     };
      viewport.addEventListener("scroll", ctrl.fallbackScrollHandler, { passive: true });
   }
@@ -198,7 +212,9 @@
       b.setAttribute("aria-label", `Go to page ${i + 1}`);
       b.dataset.index = String(i);
       b.addEventListener("click", () => {
-      goToPage(ctrl, i);
+        stopAutoPlay(ctrl);
+        goToPage(ctrl, i);
+        startAutoPlay(ctrl);
       });
       ctrl.dotsWrap.appendChild(b);
     }
@@ -215,6 +231,7 @@
     }
 
     ctrl.currentPage = 0;
+     ctrl.pageCount = pages.length || 1;
 
     ctrl.track.innerHTML = pages
       .map((pageItems, pageIndex) => {
@@ -244,10 +261,10 @@
     ctrl.track.style.transform = "translateX(0)";
 
 
-    renderDots(ctrl, pages.length || 1);
+   renderDots(ctrl, ctrl.pageCount);
     setActiveDot(ctrl, ctrl.currentPage);
     // If only one page, disable pointer events on dots for clarity
-    ctrl.dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
+     ctrl.dotsWrap.style.pointerEvents = ctrl.pageCount > 1 ? "auto" : "none";
     setHint(
       ctrl,
       items.length
@@ -256,25 +273,37 @@
     );
 
     attachObservers(ctrl);
- 
+    startAutoPlay(ctrl);
   }
 
-   function goToPage(ctrl, pageIndex) {
-    if (!ctrl) return;
-    const pages = ctrl.track.querySelectorAll(".carousel-page");
-    if (!pages.length) return;
-    const maxPage = pages.length - 1;
+  function goToPage(ctrl, pageIndex) {
+    if (!ctrl || !ctrl.track) return;
+    const maxPage = Math.max(0, (ctrl.pageCount || 1) - 1);
     ctrl.currentPage = Math.max(0, Math.min(pageIndex, maxPage));
     const offset = -ctrl.currentPage * 100;
     ctrl.track.style.transform = `translateX(${offset}%)`;
     setActiveDot(ctrl, ctrl.currentPage);
   }
-    function renderAllCarousels() {
+     function renderAllCarousels() {
     Object.values(controllers).forEach((ctrl) => {
       if (!ctrl) return;
-      const items = (featuredData && featuredData[ctrl.type]) ? featuredData[ctrl.type] : [];
+    const items = featuredData && featuredData[ctrl.type] ? featuredData[ctrl.type] : [];
       renderCarousel(ctrl, items);
     });
+  }
+function startAutoPlay(ctrl) {
+    if (!ctrl || ctrl.pageCount <= 1) return;
+    stopAutoPlay(ctrl);
+    ctrl.autoTimer = window.setInterval(() => {
+      const nextPage = (ctrl.currentPage + 1) % ctrl.pageCount;
+      goToPage(ctrl, nextPage);
+    }, AUTO_PLAY_DELAY);
+  }
+
+  function stopAutoPlay(ctrl) {
+    if (!ctrl || !ctrl.autoTimer) return;
+    clearInterval(ctrl.autoTimer);
+    ctrl.autoTimer = null;
   }
 
   // ===== Init =====
