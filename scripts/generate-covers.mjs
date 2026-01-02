@@ -11,7 +11,15 @@ function isImage(file) {
 
 function titleFromFilename(filename) {
   // bỏ extension
-  const base = filename.replace(/\.[^.]+$/, "");
+  let base = filename.replace(/\.[^.]+$/, "");
+
+  // Một số file bị dính "đuôi" extension trong tên (vd: Global-Martial-Artsjpg.jpg)
+  // => cắt bỏ nếu phần cuối tên file trùng với 1 extension ảnh phổ biến.
+  // Lặp để xử lý trường hợp dính nhiều lần.
+  const extLike = /(jpg|jpeg|png|webp|gif)$/i;
+  while (extLike.test(base) && base.length > 4) {
+    base = base.replace(extLike, "");
+  }
   // đổi - _ thành khoảng trắng, gom khoảng trắng
   return base.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -35,38 +43,19 @@ async function main() {
     readImagesIn(manhuaDir),
   ]);
 
+  // Output đúng format bạn yêu cầu: chỉ có 2 key "manhwa" và "manhua".
+  // Thứ tự key trong file JSON được giữ theo thứ tự chèn (manhwa trước, manhua sau).
   let data;
 
   if (manhwaFiles.length || manhuaFiles.length) {
     data = {
-      // Thêm order/sections để UI luôn render đúng thứ tự (manhwa trước, manhua sau)
-      // ngay cả khi phía client có sort keys.
-      order: ["manhwa", "manhua"],
-      sections: [
-        {
-          type: "manhwa",
-          items: manhwaFiles.map((f) => ({ file: `manhwa/${f}`, title: titleFromFilename(f) })),
-        },
-        {
-          type: "manhua",
-          items: manhuaFiles.map((f) => ({ file: `manhua/${f}`, title: titleFromFilename(f) })),
-        },
-      ],
       manhwa: manhwaFiles.map((f) => ({ file: `manhwa/${f}`, title: titleFromFilename(f) })),
       manhua: manhuaFiles.map((f) => ({ file: `manhua/${f}`, title: titleFromFilename(f) })),
     };
   } else {
-    // fallback: quét cover/ như script cũ của bạn :contentReference[oaicite:2]{index=2}
+    // fallback: nếu không có folder con manhwa/manhua thì quét trực tiếp cover/
     const rootFiles = await readImagesIn(COVER_DIR);
     data = {
-      order: ["manhwa", "manhua"],
-      sections: [
-        {
-          type: "manhwa",
-          items: rootFiles.map((f) => ({ file: f, title: titleFromFilename(f) })),
-        },
-        { type: "manhua", items: [] },
-      ],
       manhwa: rootFiles.map((f) => ({ file: f, title: titleFromFilename(f) })),
       manhua: [],
     };

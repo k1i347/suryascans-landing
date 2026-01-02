@@ -24,6 +24,14 @@ function Get-Images($folder) {
 
 function Title-FromFilename($filename) {
   $base = [System.IO.Path]::GetFileNameWithoutExtension($filename)
+
+  # Một số file bị dính "đuôi" extension trong tên (vd: Global-Martial-Artsjpg.jpg)
+  # => cắt bỏ nếu phần cuối tên file trùng với 1 extension ảnh phổ biến.
+  $extLike = '(?i)(jpg|jpeg|png|webp|gif)$'
+  while (($base.Length -gt 4) -and ($base -match $extLike)) {
+    $base = $base -replace $extLike, ''
+  }
+
   $title = $base -replace "[-_]+", " " -replace "\s+", " "
   return $title.Trim()
 }
@@ -37,25 +45,15 @@ $manhuaFiles = Get-Images $manhuaDir
 
 if (($manhwaFiles.Count -eq 0) -and ($manhuaFiles.Count -eq 0)) {
   $rootFiles = Get-Images $dir
-  $data = @{
-    # Thêm order/sections để phía client luôn render đúng thứ tự (manhwa trước, manhua sau)
-    # ngay cả khi họ sort keys.
-    order = @("manhwa", "manhua")
-    sections = @(
-      @{ type = "manhwa"; items = ($rootFiles | ForEach-Object { @{ file = $_; title = Title-FromFilename $_ } }) }
-      @{ type = "manhua"; items = @() }
-    )
+  # Output đúng format bạn yêu cầu: chỉ có 2 key "manhwa" và "manhua".
+  # Dùng [ordered] để giữ thứ tự key (manhwa trước, manhua sau).
+  $data = [ordered]@{
     manhwa = $rootFiles | ForEach-Object { @{ file = $_; title = Title-FromFilename $_ } }
     manhua = @()
   }
   $counts = @{ manhwa = $rootFiles.Count; manhua = 0 }
 } else {
-  $data = @{
-    order = @("manhwa", "manhua")
-    sections = @(
-      @{ type = "manhwa"; items = ($manhwaFiles | ForEach-Object { @{ file = "manhwa/$($_)"; title = Title-FromFilename $_ } }) }
-      @{ type = "manhua"; items = ($manhuaFiles | ForEach-Object { @{ file = "manhua/$($_)"; title = Title-FromFilename $_ } }) }
-    )
+  $data = [ordered]@{
     manhwa = $manhwaFiles | ForEach-Object { @{ file = "manhwa/$($_)"; title = Title-FromFilename $_ } }
     manhua = $manhuaFiles | ForEach-Object { @{ file = "manhua/$($_)"; title = Title-FromFilename $_ } }
   }
