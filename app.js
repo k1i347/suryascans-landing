@@ -23,7 +23,8 @@
 
   let featuredData = { manhwa: [], manhua: [] };
   let currentType = "manhwa";
-  let io = null;
+  let currentPage = 0;
+  let columns = 5;
 
   // ===== Helpers =====
   function stripBom(text) {
@@ -112,7 +113,12 @@
     });
   }
 
-  function setupObserver() {
+    function getColumns() {
+    const w = window.innerWidth;
+    if (w <= 680) return 2;
+    if (w <= 980) return 3;
+    if (w <= 1200) return 4;
+    return 5;
     if (io) io.disconnect();
     const cards = track.querySelectorAll(".cover-card");
     if (!cards.length) return;
@@ -173,13 +179,10 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "dot" + (i === 0 ? " is-active" : "");
-      b.setAttribute("aria-label", `Go to item ${i + 1}`);
+       b.setAttribute("aria-label", `Go to page ${i + 1}`);
       b.dataset.index = String(i);
       b.addEventListener("click", () => {
-        const card = track.querySelector(`.cover-card[data-index="${i}"]`);
-        if (card) {
-          card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-        }
+          goToPage(i);
       });
       dotsWrap.appendChild(b);
     }
@@ -187,31 +190,59 @@
 
   function renderCarousel(items) {
     // items: [{file,title,href}]
-    track.innerHTML = items
-      .map((it, idx) => {
-        const imgSrc = `${COVER_BASE_PATH}${it.file}`;
-        const safeTitle = it.title || `Item ${idx + 1}`;
-        const href = it.href || DEFAULT_HREF;
+  columns = getColumns();
+    const pages = [];
+    for (let i = 0; i < items.length; i += columns) {
+      pages.push(items.slice(i, i + columns));
+    }
 
-        return `
-          <a class="cover-card" role="listitem"
-             href="${href}" target="_blank" rel="noopener"
-             data-index="${idx}" aria-label="${safeTitle}">
-            <img src="${imgSrc}" alt="${safeTitle}" loading="lazy" />
-          </a>
-        `;
+    currentPage = 0;
+
+    track.innerHTML = pages
+      .map((pageItems, pageIndex) => {
+        const cards = pageItems
+          .map((it, idx) => {
+            const imgSrc = `${COVER_BASE_PATH}${it.file}`;
+            const safeTitle = it.title || `Item ${idx + 1}`;
+            const href = it.href || DEFAULT_HREF;
+
+            return `
+              <a class="cover-card" role="listitem"
+                 href="${href}" target="_blank" rel="noopener"
+                 data-index="${idx}" aria-label="${safeTitle}">
+                <img src="${imgSrc}" alt="${safeTitle}" loading="lazy" />
+                <span class="cover-title">${safeTitle}</span>
+              </a>
+            `;
+          })
+          .join("");
+
+        return `<div class="carousel-page" data-page="${pageIndex}" style="--cols:${columns};">${cards}</div>`;
       })
       .join("");
 
     // reset scroll về đầu
     viewport.scrollLeft = 0;
+      track.style.transform = "translateX(0)";
 
-    renderDots(items.length);
-    setupObserver();
+  renderDots(pages.length || 1);
+    setActiveDot(currentPage);
 
     setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
   }
+    // If only one page, disable pointer events on dots for clarity
+    dotsWrap.style.pointerEvents = pages.length > 1 ? "auto" : "none";
+  
 
+  function goToPage(pageIndex) {
+    const pages = track.querySelectorAll(".carousel-page");
+    if (!pages.length) return;
+    const maxPage = pages.length - 1;
+    currentPage = Math.max(0, Math.min(pageIndex, maxPage));
+    const offset = -currentPage * 100;
+    track.style.transform = `translateX(${offset}%)`;
+    setActiveDot(currentPage);
+  }
   function switchType(type) {
     currentType = type;
     setActiveTab(type);
@@ -241,6 +272,12 @@
             switchType(type);
           }
         });
+      });
+            window.addEventListener("resize", () => {
+        const newCols = getColumns();
+        if (newCols !== columns) {
+          switchType(currentType);
+        }
       });
     } catch (err) {
       console.error("[covers] load failed:", err);
