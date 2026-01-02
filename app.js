@@ -1,208 +1,253 @@
-// Year
-const yearEl = document.getElementById("year");
-if (yearEl) yearEl.textContent = new Date().getFullYear();
+/* app.js — Featured projects: Manhwa/Manhua + Dots + Mobile-friendly carousel */
 
-// Carousel elements
-const track = document.getElementById("coversTrack");
-const hint = document.getElementById("coversHint");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+(() => {
+  // ===== Config =====
+  const COVERS_JSON_URL = "./cover/covers.json"; // dùng relative để không lỗi khi deploy subfolder
+  const COVER_BASE_PATH = "./cover/";            // ảnh sẽ là ./cover/<file>
+  const DEFAULT_HREF = "https://vanthucac.xyz";  // click cover mở reading site
 
-let covers = [];
-let index = 0;
-let timer = null;
-let isHovering = false;
-
-// Convert filename -> title
-function filenameToTitle(filename) {
-  // remove extension
-  const base = filename.replace(/\.[^/.]+$/, "");
-  // replace _ and - with spaces
-  const spaced = base.replace(/[_-]+/g, " ").trim();
-  // optional: keep as-is (looks clean if you name files properly)
-  return spaced;
-}
-async function loadFeatured() {
-  const res = await fetch("./cover/covers.json", { cache: "no-store" });
-  if (!res.ok) throw new Error("Cannot load covers.json");
-  return await res.json();
-}
-
-function renderCarousel(items) {
-  // items: [{file,title}]
-  track.innerHTML = items.map((it, idx) => `
-    <a class="cover-card" role="listitem"
-       href="https://vanthucac.xyz" target="_blank" rel="noopener"
-       data-index="${idx}" aria-label="${it.title}">
-      <img src="./cover/${it.file}" alt="${it.title}" loading="lazy"/>
-    </a>
-  `).join("");
-
-  // ... (phần dots + observer y như mình gửi trước)
-}
-
-let featuredData;
-
-async function init() {
-  featuredData = await loadFeatured();
-  renderCarousel(featuredData.manhwa || []);
-  // setActiveTab("manhwa") ...
-}
-
-tabs.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const type = btn.dataset.type; // "manhwa" | "manhua"
-    renderCarousel((featuredData && featuredData[type]) || []);
-  });
-});
-
-init();
-
-
-function clearTimer() {
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-}
-
-function startAutoRotate() {
-  clearTimer();
-  if (covers.length <= 5) return; // only auto-rotate if > 5
-
-  timer = setInterval(() => {
-    if (isHovering) return;
-    goNext();
-  }, 3200);
-}
-
-// Measure one step width (cover width + gap)
-function getStepWidth() {
-  const first = track.querySelector(".cover-item");
-  if (!first) return 0;
-
-  const style = getComputedStyle(track);
-  const gap = parseFloat(style.columnGap || style.gap || "14") || 14;
-
-  // offsetWidth includes border
-  return first.offsetWidth + gap;
-}
-
-// Update transform translateX based on index
-function renderPosition() {
-  const step = getStepWidth();
-  const x = -(index * step);
-  track.style.transform = `translateX(${x}px)`;
-}
-
-function clampIndex() {
-  // max index so that we still show 5 items worth space.
-  // We don't know exactly how many are visible on responsive, so we compute based on viewport width.
+  // ===== DOM =====
   const viewport = document.getElementById("carouselViewport");
-  const step = getStepWidth();
-  if (!viewport || !step) return;
+  const track = document.getElementById("coversTrack");
+  const dotsWrap = document.getElementById("carouselDots");
+  const hint = document.getElementById("coversHint");
+  const tabs = document.querySelectorAll(".projects-controls .pill");
 
-  const visibleCount = Math.max(1, Math.floor((viewport.clientWidth + 14) / step));
-  const maxIndex = Math.max(0, covers.length - visibleCount);
+  // Footer year (nếu bạn có 1 hoặc nhiều chỗ hiển thị năm)
+  document.querySelectorAll("#year, .year").forEach((el) => {
+    el.textContent = new Date().getFullYear();
+  });
 
-  if (index > maxIndex) index = 0;
-  if (index < 0) index = maxIndex;
-}
+  // Nếu trang chưa gắn section carousel mới thì thôi
+  if (!viewport || !track || !dotsWrap || !hint) return;
 
-function goNext() {
-  index += 1;
-  clampIndex();
-  renderPosition();
-}
-function goPrev() {
-  index -= 1;
-  clampIndex();
-  renderPosition();
-}
+  let featuredData = { manhwa: [], manhua: [] };
+  let currentType = "manhwa";
+  let io = null;
 
-function buildCovers(list) {
-  covers = list;
-  track.innerHTML = "";
-  index = 0;
-
-  // create items
-  for (const file of covers) {
-    const title = filenameToTitle(file);
-
-    // link default -> reading site (you can change per-title later if you want)
-    const a = document.createElement("a");
-    a.className = "cover-item";
-    a.href = "https://vanthucac.xyz";
-    a.rel = "noopener";
-    a.target = "_blank";
-    a.setAttribute("role", "listitem");
-    a.setAttribute("aria-label", title);
-
-    const img = document.createElement("img");
-    img.src = `./cover/${file}`;
-    img.alt = title;
-    img.loading = "lazy";
-
-    const cap = document.createElement("span");
-    cap.className = "cover-title";
-    cap.textContent = title;
-
-    a.appendChild(img);
-    a.appendChild(cap);
-    track.appendChild(a);
+  // ===== Helpers =====
+  function stripBom(text) {
+    return text.replace(/^\uFEFF/, "");
   }
 
-  // hover pause
-  track.addEventListener("mouseenter", () => { isHovering = true; });
-  track.addEventListener("mouseleave", () => { isHovering = false; });
+  function isNonEmptyString(v) {
+    return typeof v === "string" && v.trim().length > 0;
+  }
 
-  // arrows
-  prevBtn?.addEventListener("click", () => {
-    clearTimer();
-    goPrev();
-    startAutoRotate();
-  });
-  nextBtn?.addEventListener("click", () => {
-    clearTimer();
-    goNext();
-    startAutoRotate();
-  });
+  function titleFromFilename(filename) {
+    const base = filename.replace(/\.[^.]+$/, "");
+    return decodeURIComponent(base)
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 
-  // initial layout
-  requestAnimationFrame(() => {
-    clampIndex();
-    renderPosition();
-    startAutoRotate();
-  });
-
-  // helpful hint
-
-
-  // Re-render on resize
-  window.addEventListener("resize", () => {
-    clampIndex();
-    renderPosition();
-  });
-}
-
-async function loadCovers() {
-  try {
-    const res = await fetch("./cover/covers.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("covers.json not found or unreadable");
-    const list = await res.json();
-
-    if (!Array.isArray(list) || list.length === 0) {
-      throw new Error("covers.json is empty or not an array");
+  function normalizeRawJson(raw) {
+    // Format mới: { manhwa:[{file,title,href?}], manhua:[...] }
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const manhwa = Array.isArray(raw.manhwa) ? raw.manhwa : [];
+      const manhua = Array.isArray(raw.manhua) ? raw.manhua : [];
+      return {
+        manhwa: manhwa.map(normalizeItem).filter(Boolean),
+        manhua: manhua.map(normalizeItem).filter(Boolean),
+      };
     }
 
-    buildCovers(list);
-  } catch (err) {
-    console.error(err);
-    if (hint) {
-      hint.textContent =
-        "Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.";
+    // Format cũ: ["a.webp","b.jpg"] -> coi như manhwa
+    if (Array.isArray(raw)) {
+      return {
+        manhwa: raw
+          .filter(isNonEmptyString)
+          .map((f) => ({ file: f, title: titleFromFilename(f), href: DEFAULT_HREF })),
+        manhua: [],
+      };
+    }
+
+    return { manhwa: [], manhua: [] };
+  }
+
+  function normalizeItem(it) {
+    // it có thể là string hoặc object
+    if (isNonEmptyString(it)) {
+      return { file: it, title: titleFromFilename(it), href: DEFAULT_HREF };
+    }
+    if (it && typeof it === "object") {
+      const file = isNonEmptyString(it.file) ? it.file : null;
+      if (!file) return null;
+
+      const title = isNonEmptyString(it.title) ? it.title : titleFromFilename(file);
+      const href = isNonEmptyString(it.href) ? it.href : DEFAULT_HREF;
+
+      return { file, title, href };
+    }
+    return null;
+  }
+
+  async function loadCoversJson() {
+    const res = await fetch(COVERS_JSON_URL, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+    // đọc text để strip BOM, rồi parse
+    const text = stripBom(await res.text());
+    return JSON.parse(text);
+  }
+
+  function setActiveTab(type) {
+    tabs.forEach((btn) => {
+      const active = btn.dataset.type === type;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+  }
+
+  function setHint(text) {
+    hint.textContent = text || "";
+  }
+
+  function setActiveDot(index) {
+    dotsWrap.querySelectorAll(".dot").forEach((d, i) => {
+      d.classList.toggle("is-active", i === index);
+      d.setAttribute("aria-current", i === index ? "true" : "false");
+    });
+  }
+
+  function setupObserver() {
+    if (io) io.disconnect();
+    const cards = track.querySelectorAll(".cover-card");
+    if (!cards.length) return;
+
+    // IntersectionObserver để bắt card nào đang ở giữa viewport
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          let best = null;
+          for (const e of entries) {
+            if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+          }
+          if (best && best.isIntersecting) {
+            const idx = Number(best.target.dataset.index);
+            if (!Number.isNaN(idx)) setActiveDot(idx);
+          }
+        },
+        {
+          root: viewport,
+          threshold: [0.5, 0.65, 0.8],
+        }
+      );
+
+      cards.forEach((c) => io.observe(c));
+      return;
+    }
+
+    // Fallback nếu browser quá cũ: dựa trên scroll position
+    viewport.addEventListener(
+      "scroll",
+      () => {
+        const rect = viewport.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        cards.forEach((card) => {
+          const r = card.getBoundingClientRect();
+          const cardCenter = r.left + r.width / 2;
+          const dist = Math.abs(cardCenter - centerX);
+          const idx = Number(card.dataset.index);
+          if (dist < bestDist && !Number.isNaN(idx)) {
+            bestDist = dist;
+            bestIdx = idx;
+          }
+        });
+
+        setActiveDot(bestIdx);
+      },
+      { passive: true }
+    );
+  }
+
+  function renderDots(count) {
+    dotsWrap.innerHTML = "";
+    for (let i = 0; i < count; i++) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dot" + (i === 0 ? " is-active" : "");
+      b.setAttribute("aria-label", `Go to item ${i + 1}`);
+      b.dataset.index = String(i);
+      b.addEventListener("click", () => {
+        const card = track.querySelector(`.cover-card[data-index="${i}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+      });
+      dotsWrap.appendChild(b);
     }
   }
-}
 
-loadCovers();
+  function renderCarousel(items) {
+    // items: [{file,title,href}]
+    track.innerHTML = items
+      .map((it, idx) => {
+        const imgSrc = `${COVER_BASE_PATH}${it.file}`;
+        const safeTitle = it.title || `Item ${idx + 1}`;
+        const href = it.href || DEFAULT_HREF;
+
+        return `
+          <a class="cover-card" role="listitem"
+             href="${href}" target="_blank" rel="noopener"
+             data-index="${idx}" aria-label="${safeTitle}">
+            <img src="${imgSrc}" alt="${safeTitle}" loading="lazy" />
+          </a>
+        `;
+      })
+      .join("");
+
+    // reset scroll về đầu
+    viewport.scrollLeft = 0;
+
+    renderDots(items.length);
+    setupObserver();
+
+    setHint(items.length ? `${items.length} featured ${currentType} series` : `No featured ${currentType} items yet.`);
+  }
+
+  function switchType(type) {
+    currentType = type;
+    setActiveTab(type);
+
+    const items = (featuredData && featuredData[type]) ? featuredData[type] : [];
+    renderCarousel(items);
+  }
+
+  // ===== Init =====
+  async function init() {
+    try {
+      const raw = await loadCoversJson();
+      featuredData = normalizeRawJson(raw);
+
+      // Nếu manhwa rỗng mà manhua có -> mở manhua luôn
+      if ((!featuredData.manhwa || featuredData.manhwa.length === 0) && featuredData.manhua && featuredData.manhua.length > 0) {
+        switchType("manhua");
+      } else {
+        switchType("manhwa");
+      }
+
+      // tab events
+      tabs.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const type = btn.dataset.type;
+          if (type === "manhwa" || type === "manhua") {
+            switchType(type);
+          }
+        });
+      });
+    } catch (err) {
+      console.error("[covers] load failed:", err);
+      // giữ đúng style thông báo bạn đang thấy
+      setHint("Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.");
+    }
+  }
+
+  init();
+})();
