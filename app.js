@@ -22,7 +22,7 @@
     el.textContent = new Date().getFullYear();
   });
 
-    let featuredData = {
+  let featuredData = {
     manhwa: [],
     manhwaTotal: 0,
     manhua: [],
@@ -56,7 +56,6 @@
       rafId: null,
       autoTimer: null,
     };
-
   }
 
   function stripBom(text) {
@@ -95,7 +94,7 @@
     const genre = safeText(it.genre).toLowerCase();
     const cover = safeText(it.cover) || PLACEHOLDER_IMAGE;
     const url = safeText(it.url) || "#";
-        const id = safeText(it.id) || safeText(it.slug) || url || title;
+    const id = safeText(it.id) || safeText(it.slug) || url || title;
     const viewsNum = Number(it.views);
     const views = Number.isFinite(viewsNum) ? viewsNum : 0;
     if (genre !== "manhwa" && genre !== "manhua") return null;
@@ -104,7 +103,7 @@
     return { id, title, genre, cover, url, views };
   }
 
- function sortByViews(a, b) {
+  function sortByViews(a, b) {
     const byViews = (b?.views || 0) - (a?.views || 0);
     if (byViews !== 0) return byViews;
     return a.title.localeCompare(b.title, "en", { sensitivity: "base" });
@@ -130,7 +129,7 @@
 
     const remaining = normalized.filter((it) => !featuredIds.has(it.id));
     return {
-    featuredManhwa,
+      featuredManhwa,
       featuredManhua,
       manhwaTotal: manhwaSorted.length,
       manhuaTotal: manhuaSorted.length,
@@ -159,7 +158,7 @@
     return 5;
   }
 
-function createCard(item) {
+  function createCard(item) {
     const card = document.createElement("a");
     card.className = "cover-card";
     card.role = "listitem";
@@ -184,7 +183,7 @@ function createCard(item) {
     card.appendChild(img);
     card.appendChild(caption);
 
-    return card;  
+    return card;
   }
 
   function renderDots(ctrl, count) {
@@ -271,15 +270,17 @@ function createCard(item) {
       });
     };
 
-    ctrl.viewport.addEventListener("scroll", ctrl.scrollHandler, { passive: true });
+    ctrl.viewport.addEventListener("scroll", ctrl.scrollHandler, {
+      passive: true,
+    });
   }
-
 
   function updateActiveFromScroll(ctrl) {
     const pages = Array.from(ctrl.track.querySelectorAll(".carousel-page"));
     if (!pages.length) return;
 
-    const viewportCenter = ctrl.viewport.scrollLeft + ctrl.viewport.clientWidth / 2;
+    const viewportCenter =
+      ctrl.viewport.scrollLeft + ctrl.viewport.clientWidth / 2;
     let bestIdx = 0;
     let bestDist = Infinity;
 
@@ -291,7 +292,7 @@ function createCard(item) {
         bestIdx = idx;
       }
     });
-      ctrl.currentPage = bestIdx;
+    ctrl.currentPage = bestIdx;
     setActiveDot(ctrl, bestIdx);
   }
 
@@ -308,7 +309,6 @@ function createCard(item) {
     ctrl.viewport.scrollTo({ left: target.offsetLeft, behavior: "smooth" });
     setActiveDot(ctrl, targetIndex);
   }
-
 
   function startAutoPlay(ctrl) {
     if (!ctrl || ctrl.pageCount <= 1) return;
@@ -328,14 +328,20 @@ function createCard(item) {
   function updateLoadMoreState() {
     if (!loadMoreBtn) return;
     const done = renderedCount >= remainingItems.length;
-    loadMoreBtn.textContent = done ? "Đã hiển thị tất cả" : "Xem thêm";
+    loadMoreBtn.textContent = done ? "All items shown" : "Load more";
     loadMoreBtn.disabled = done || remainingItems.length === 0;
-    loadMoreBtn.setAttribute("aria-disabled", loadMoreBtn.disabled ? "true" : "false");
+    loadMoreBtn.setAttribute(
+      "aria-disabled",
+      loadMoreBtn.disabled ? "true" : "false"
+    );
   }
 
   function renderMoreProjects() {
     if (!allProjectsGrid) return;
-    const next = remainingItems.slice(renderedCount, renderedCount + LOAD_BATCH);
+    const next = remainingItems.slice(
+      renderedCount,
+      renderedCount + LOAD_BATCH
+    );
     next.forEach((item) => {
       allProjectsGrid.appendChild(createCard(item));
     });
@@ -357,7 +363,6 @@ function createCard(item) {
       updateLoadMoreState();
     }
   }
-
 
   async function init() {
     try {
@@ -383,10 +388,10 @@ function createCard(item) {
     } catch (err) {
       console.error("[featured] load failed:", err);
       Object.values(controllers).forEach((ctrl) => {
-      setHint(ctrl, "No featured titles yet.");
+        setHint(ctrl, "No featured titles yet.");
       });
       if (loadMoreBtn) {
-        loadMoreBtn.textContent = "Không tải được dữ liệu";
+        loadMoreBtn.textContent = "Failed to load data";
         loadMoreBtn.disabled = true;
       }
     }
@@ -396,7 +401,7 @@ function createCard(item) {
     Object.values(controllers).forEach((ctrl) => {
       if (!ctrl) return;
       const items = featuredData[ctrl.type] || [];
-    const totalKey = ctrl.type === "manhwa" ? "manhwaTotal" : "manhuaTotal";
+      const totalKey = ctrl.type === "manhwa" ? "manhwaTotal" : "manhuaTotal";
       const totalCount = featuredData[totalKey] || items.length;
       renderCarousel(ctrl, items, totalCount);
     });
@@ -409,5 +414,4 @@ function createCard(item) {
   }
 
   init();
-  
 })();
