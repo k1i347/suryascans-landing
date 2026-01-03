@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/generate-covers.mjs"
+    "covers": "node scripts/generate-covers.mjs",
+    "site": "node scripts/build-site.mjs",
+    "build": "npm run covers && npm run site"
+
   }
 }

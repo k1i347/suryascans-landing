@@ -23,12 +23,56 @@
                ],
     "manhua":  [
                    {
+                       "file":  "manhua/Astral Pet Store.jpg",
+                       "title":  "Astral Pet Store"
+                   },
+                   {
+                       "file":  "manhua/Banished Disciple’s Counterattack.jpg",
+                       "title":  "Banished Disciple’s Counterattack"
+                   },
+                   {
+                       "file":  "manhua/Demon Magic Emperor.jpg",
+                       "title":  "Demon Magic Emperor"
+                   },
+                   {
+                       "file":  "manhua/Disastrous Necromancer.webp",
+                       "title":  "Disastrous Necromancer"
+                   },
+                   {
+                       "file":  "manhua/Evolution From A Tree.webp",
+                       "title":  "Evolution From A Tree"
+                   },
+                   {
+                       "file":  "manhua/Ghost Emperor.webp",
+                       "title":  "Ghost Emperor"
+                   },
+                   {
                        "file":  "manhua/Global-Martial-Artsjpg.jpg",
                        "title":  "Global Martial Arts"
                    },
                    {
+                       "file":  "manhua/Im The Great Immortal.jpg",
+                       "title":  "Im The Great Immortal"
+                   },
+                   {
+                       "file":  "manhua/Keep A Low Profile, Sect Leader.webp",
+                       "title":  "Keep A Low Profile, Sect Leader"
+                   },
+                   {
+                       "file":  "manhua/Logging 10000 Years into the Future.webp",
+                       "title":  "Logging 10000 Years into the Future"
+                   },
+                   {
                        "file":  "manhua/Soul Land IV.jpg",
                        "title":  "Soul Land IV"
+                   },
+                   {
+                       "file":  "manhua/The-Eternal-Supreme.webp",
+                       "title":  "The Eternal Supreme"
+                   },
+                   {
+                       "file":  "manhua/Top Tier Providence.webp",
+                       "title":  "Top Tier Providence"
                    }
                ]
 }
