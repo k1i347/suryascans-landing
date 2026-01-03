@@ -1,12 +1,9 @@
 (() => {
-  // ===== Config =====
-  const COVERS_JSON_URL = "./cover/covers.json"; // dùng relative để không lỗi khi deploy subfolder
-  const COVER_BASE_PATH = "./cover/"; // ảnh sẽ là ./cover/<file>
-  const DEFAULT_HREF = "https://vanthucac.xyz"; // click cover mở reading site
-  const AUTO_PLAY_DELAY = 2000; // ms
+    const SNAPSHOT_PATHS = ["./dist/comics.snapshot.json", "./assets/data/comics.snapshot.json"];
+    const PLACEHOLDER_IMAGE = "./assets/logo.png";
+    const AUTO_PLAY_DELAY = 3200;
 
-  // ===== DOM =====
- const controllers = {
+    const controllers = {
     manhwa: createController("manhwa"),
     manhua: createController("manhua"),
   };
@@ -14,12 +11,10 @@
   const hasCarousels = Object.values(controllers).some(Boolean);
   if (!hasCarousels) return;
 
-  // Footer year (nếu bạn có 1 hoặc nhiều chỗ hiển thị năm)
   document.querySelectorAll("#year, .year").forEach((el) => {
     el.textContent = new Date().getFullYear();
   });
 
- 
   let featuredData = { manhwa: [], manhua: [] };
   let lastColumns = getColumns();
 
@@ -31,94 +26,72 @@
 
     if (!viewport || !track || !dotsWrap || !hint) return null;
 
-    const ctrl = {
+    viewport.style.overflowX = "auto";
+    viewport.style.scrollBehavior = "smooth";
+
+    return {
       type,
       viewport,
       track,
       dotsWrap,
       hint,
       currentPage: 0,
-      columns: getColumns(),
-      io: null,
-      fallbackScrollHandler: null,
-      autoTimer: null,
       pageCount: 0,
+      columns: getColumns(),
+      scrollHandler: null,
+      rafId: null,
+      autoTimer: null,
     };
-     // Tạm dừng auto-play khi người dùng hover/focus
-    const pauseEvents = ["mouseenter", "focusin", "touchstart"];
-    const resumeEvents = ["mouseleave", "focusout", "touchend", "touchcancel"];
 
-    pauseEvents.forEach((evt) => viewport.addEventListener(evt, () => stopAutoPlay(ctrl)));
-    resumeEvents.forEach((evt) => viewport.addEventListener(evt, () => startAutoPlay(ctrl)));
-
-    return ctrl;
   }
-  // ===== Helpers =====
+
   function stripBom(text) {
     return text.replace(/^\uFEFF/, "");
   }
 
-  function isNonEmptyString(v) {
-    return typeof v === "string" && v.trim().length > 0;
+  function safeText(val) {
+    return typeof val === "string" ? val.trim() : "";
   }
 
-  function titleFromFilename(filename) {
-    const base = filename.replace(/\.[^.]+$/, "");
-    return decodeURIComponent(base)
-      .replace(/[-_]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function normalizeRawJson(raw) {
-    // Format mới: { manhwa:[{file,title,href?}], manhua:[...] }
-    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-      const manhwa = Array.isArray(raw.manhwa) ? raw.manhwa : [];
-      const manhua = Array.isArray(raw.manhua) ? raw.manhua : [];
-      return {
-        manhwa: manhwa.map(normalizeItem).filter(Boolean),
-        manhua: manhua.map(normalizeItem).filter(Boolean),
-      };
-    }
-
-    // Format cũ: ["a.webp","b.jpg"] -> coi như manhwa
-    if (Array.isArray(raw)) {
-      return {
-        manhwa: raw
-          .filter(isNonEmptyString)
-          .map((f) => ({ file: f, title: titleFromFilename(f), href: DEFAULT_HREF })),
-        manhua: [],
-      };
-    }
-
-    return { manhwa: [], manhua: [] };
-  }
-
-  function normalizeItem(it) {
-    // it có thể là string hoặc object
-    if (isNonEmptyString(it)) {
-      return { file: it, title: titleFromFilename(it), href: DEFAULT_HREF };
-    }
-    if (it && typeof it === "object") {
-      const file = isNonEmptyString(it.file) ? it.file : null;
-      if (!file) return null;
-
-      const title = isNonEmptyString(it.title) ? it.title : titleFromFilename(file);
-      const href = isNonEmptyString(it.href) ? it.href : DEFAULT_HREF;
-
-      return { file, title, href };
-    }
-    return null;
-  }
-
-  async function loadCoversJson() {
-    const res = await fetch(COVERS_JSON_URL, { cache: "no-store" });
+  async function fetchJson(url) {
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) {
       throw new Error(`HTTP ${res.status} ${res.statusText}`);
     }
-    // đọc text để strip BOM, rồi parse
     const text = stripBom(await res.text());
     return JSON.parse(text);
+  }
+
+  async function loadSnapshot() {
+    let lastError = null;
+    for (const url of SNAPSHOT_PATHS) {
+      try {
+        return await fetchJson(url);
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    if (lastError) throw lastError;
+    throw new Error("Snapshot not found");
+  }
+
+  function normalizeItem(it) {
+    if (!it || typeof it !== "object") return null;
+    const title = safeText(it.title) || "Untitled";
+    const genre = safeText(it.genre).toLowerCase();
+    const cover = safeText(it.cover) || PLACEHOLDER_IMAGE;
+    const url = safeText(it.url) || "#";
+
+    if (genre !== "manhwa" && genre !== "manhua") return null;
+    return { title, genre, cover, url };
+  }
+
+  function splitByGenre(items) {
+    const normalized = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
+    return {
+      manhwa: normalized.filter((it) => it.genre === "manhwa"),
+      manhua: normalized.filter((it) => it.genre === "manhua"),
+    };
   }
 
   function setHint(ctrl, text) {
@@ -128,7 +101,7 @@
 
   function setActiveDot(ctrl, index) {
     if (!ctrl) return;
-      ctrl.dotsWrap.querySelectorAll(".dot").forEach((d, i) => {
+    ctrl.dotsWrap.querySelectorAll(".dot").forEach((d, i) => {
       d.classList.toggle("is-active", i === index);
       d.setAttribute("aria-current", i === index ? "true" : "false");
     });
@@ -142,64 +115,32 @@
     return 5;
   }
 
-  function attachObservers(ctrl) {
-    if (!ctrl) return;
-    const { viewport, track } = ctrl;
+function createCard(item) {
+    const card = document.createElement("a");
+    card.className = "cover-card";
+    card.role = "listitem";
+    card.href = item.url;
+    card.target = "_blank";
+    card.rel = "noopener";
+    card.setAttribute("aria-label", item.title);
 
-    if (ctrl.io) ctrl.io.disconnect();
-    if (ctrl.fallbackScrollHandler) {
-      viewport.removeEventListener("scroll", ctrl.fallbackScrollHandler);
-      ctrl.fallbackScrollHandler = null;
-    }
-
-    const pages = track.querySelectorAll(".carousel-page");
-    if (!pages.length) return;
-
-    // IntersectionObserver để bắt card nào đang ở giữa viewport
-    if ("IntersectionObserver" in window) {
-      ctrl.io = new IntersectionObserver(
-        (entries) => {
-          let best = null;
-          for (const e of entries) {
-            if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
-          }
-          if (best && best.isIntersecting) {
-            const idx = Number(best.target.dataset.page);
-            if (!Number.isNaN(idx)) setActiveDot(ctrl, idx);
-          }
-        },
-        {
-          root: viewport,
-          threshold: [0.5, 0.65, 0.8],
-        }
-      );
-
-        pages.forEach((page) => ctrl.io.observe(page));
-      return;
-    }
-
-    // Fallback nếu browser quá cũ: dựa trên scroll position
-      ctrl.fallbackScrollHandler = () => {
-      const rect = viewport.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-
-      let bestIdx = 0;
-      let bestDist = Infinity;
-
-      pages.forEach((page) => {
-        const r = page.getBoundingClientRect();
-        const cardCenter = r.left + r.width / 2;
-        const dist = Math.abs(cardCenter - centerX);
-        const idx = Number(page.dataset.page);
-        if (dist < bestDist && !Number.isNaN(idx)) {
-          bestDist = dist;
-          bestIdx = idx;
-        }
-      });
-
-      setActiveDot(ctrl, bestIdx);
+    const img = document.createElement("img");
+    img.src = item.cover || PLACEHOLDER_IMAGE;
+    img.alt = item.title;
+    img.loading = "lazy";
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = PLACEHOLDER_IMAGE;
     };
-     viewport.addEventListener("scroll", ctrl.fallbackScrollHandler, { passive: true });
+
+    const caption = document.createElement("span");
+    caption.className = "cover-title";
+    caption.textContent = item.title;
+
+    card.appendChild(img);
+    card.appendChild(caption);
+
+    return card;  
   }
 
   function renderDots(ctrl, count) {
@@ -218,80 +159,109 @@
       });
       ctrl.dotsWrap.appendChild(b);
     }
+    ctrl.dotsWrap.style.pointerEvents = count > 1 ? "auto" : "none";
   }
 
-    function renderCarousel(ctrl, items) {
-      if (!ctrl) return;
-      // items: [{file,title,href}]
-      const columns = getColumns();
-      ctrl.columns = columns;
-      const pages = [];
-      for (let i = 0; i < items.length; i += columns) {
+  function renderCarousel(ctrl, items) {
+    if (!ctrl) return;
+
+    stopAutoPlay(ctrl);
+
+    ctrl.viewport.scrollTo({ left: 0 });
+    ctrl.track.innerHTML = "";
+
+    if (!items.length) {
+      ctrl.pageCount = 0;
+      setHint(ctrl, "No featured titles yet.");
+      renderDots(ctrl, 0);
+      return;
+    }
+
+    const columns = getColumns();
+    ctrl.columns = columns;
+    const pages = [];
+    for (let i = 0; i < items.length; i += columns) {
       pages.push(items.slice(i, i + columns));
     }
 
+    pages.forEach((pageItems, pageIndex) => {
+      const page = document.createElement("div");
+      page.className = "carousel-page";
+      page.dataset.page = String(pageIndex);
+      page.style.setProperty("--cols", columns);
+
+      pageItems.forEach((item) => {
+        page.appendChild(createCard(item));
+      });
+
+      ctrl.track.appendChild(page);
+    });
+
+    ctrl.pageCount = pages.length;
     ctrl.currentPage = 0;
-     ctrl.pageCount = pages.length || 1;
 
-    ctrl.track.innerHTML = pages
-      .map((pageItems, pageIndex) => {
-        const cards = pageItems
-          .map((it, idx) => {
-            const imgSrc = `${COVER_BASE_PATH}${it.file}`;
-            const safeTitle = it.title || `Item ${idx + 1}`;
-            const href = it.href || DEFAULT_HREF;
-
-            return `
-              <a class="cover-card" role="listitem"
-                 href="${href}" target="_blank" rel="noopener"
-                 data-index="${idx}" aria-label="${safeTitle}">
-                <img src="${imgSrc}" alt="${safeTitle}" loading="lazy" />
-                <span class="cover-title">${safeTitle}</span>
-              </a>
-            `;
-          })
-          .join("");
-
-        return `<div class="carousel-page" data-page="${pageIndex}" style="--cols:${columns};">${cards}</div>`;
-      })
-      .join("");
-
-    // reset scroll về đầu
-    ctrl.viewport.scrollLeft = 0;
-    ctrl.track.style.transform = "translateX(0)";
-
-
-   renderDots(ctrl, ctrl.pageCount);
+    renderDots(ctrl, ctrl.pageCount);
     setActiveDot(ctrl, ctrl.currentPage);
-    // If only one page, disable pointer events on dots for clarity
-     ctrl.dotsWrap.style.pointerEvents = ctrl.pageCount > 1 ? "auto" : "none";
-    setHint(
-      ctrl,
-      items.length
-        ? `${items.length} featured ${ctrl.type} series`
-        : `No featured ${ctrl.type} items yet.`
-    );
+    setHint(ctrl, `Showing ${items.length} titles`);
 
-    attachObservers(ctrl);
+    attachScrollSync(ctrl);
     startAutoPlay(ctrl);
   }
 
-  function goToPage(ctrl, pageIndex) {
-    if (!ctrl || !ctrl.track) return;
-    const maxPage = Math.max(0, (ctrl.pageCount || 1) - 1);
-    ctrl.currentPage = Math.max(0, Math.min(pageIndex, maxPage));
-    const offset = -ctrl.currentPage * 100;
-    ctrl.track.style.transform = `translateX(${offset}%)`;
-    setActiveDot(ctrl, ctrl.currentPage);
+  function attachScrollSync(ctrl) {
+    if (!ctrl) return;
+    if (ctrl.scrollHandler) {
+      ctrl.viewport.removeEventListener("scroll", ctrl.scrollHandler);
+    }
+
+    ctrl.scrollHandler = () => {
+      if (ctrl.rafId) return;
+      ctrl.rafId = window.requestAnimationFrame(() => {
+        ctrl.rafId = null;
+        updateActiveFromScroll(ctrl);
+      });
+    };
+
+    ctrl.viewport.addEventListener("scroll", ctrl.scrollHandler, { passive: true });
   }
-     function renderAllCarousels() {
-    Object.values(controllers).forEach((ctrl) => {
-      if (!ctrl) return;
-    const items = featuredData && featuredData[ctrl.type] ? featuredData[ctrl.type] : [];
-      renderCarousel(ctrl, items);
+
+
+  function updateActiveFromScroll(ctrl) {
+    const pages = Array.from(ctrl.track.querySelectorAll(".carousel-page"));
+    if (!pages.length) return;
+
+    const viewportCenter = ctrl.viewport.scrollLeft + ctrl.viewport.clientWidth / 2;
+    let bestIdx = 0;
+    let bestDist = Infinity;
+
+    pages.forEach((page, idx) => {
+      const pageCenter = page.offsetLeft + page.offsetWidth / 2;
+      const dist = Math.abs(pageCenter - viewportCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = idx;
+      }
     });
+      ctrl.currentPage = bestIdx;
+    setActiveDot(ctrl, bestIdx);
   }
-function startAutoPlay(ctrl) {
+
+  function goToPage(ctrl, pageIndex) {
+    if (!ctrl) return;
+    const pages = Array.from(ctrl.track.querySelectorAll(".carousel-page"));
+    if (!pages.length) return;
+
+    const maxPage = Math.max(0, pages.length - 1);
+    const targetIndex = Math.max(0, Math.min(pageIndex, maxPage));
+    const target = pages[targetIndex];
+
+    ctrl.currentPage = targetIndex;
+    ctrl.viewport.scrollTo({ left: target.offsetLeft, behavior: "smooth" });
+    setActiveDot(ctrl, targetIndex);
+  }
+
+
+  function startAutoPlay(ctrl) {
     if (!ctrl || ctrl.pageCount <= 1) return;
     stopAutoPlay(ctrl);
     ctrl.autoTimer = window.setInterval(() => {
@@ -306,11 +276,11 @@ function startAutoPlay(ctrl) {
     ctrl.autoTimer = null;
   }
 
-  // ===== Init =====
   async function init() {
     try {
-      const raw = await loadCoversJson();
-      featuredData = normalizeRawJson(raw);
+      const raw = await loadSnapshot();
+      const items = Array.isArray(raw?.items) ? raw.items : [];
+      featuredData = splitByGenre(items);
 
       renderAllCarousels();
 
@@ -322,13 +292,21 @@ function startAutoPlay(ctrl) {
         }
       });
     } catch (err) {
-      console.error("[covers] load failed:", err);
-      // giữ đúng style thông báo bạn đang thấy
+      console.error("[featured] load failed:", err);
       Object.values(controllers).forEach((ctrl) => {
-        setHint(ctrl, "Could not load /cover/covers.json. Make sure it exists and contains an array of filenames.");
-      });    
+      setHint(ctrl, "No featured titles yet.");
+      }); 
     }
   }
 
+  function renderAllCarousels() {
+    Object.values(controllers).forEach((ctrl) => {
+      if (!ctrl) return;
+      const items = featuredData[ctrl.type] || [];
+      renderCarousel(ctrl, items);
+    });
+  }
+
   init();
+  
 })();
