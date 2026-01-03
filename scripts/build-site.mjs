@@ -5,6 +5,23 @@ const DATA_URL =
   process.env.VANTHUCAC_DATA_URL ||
   "https://vanthucac.xyz/wp-json/vanthucac/v1/comics?limit=500";
 
+function toNumber(val, fallback = 0) {
+  const num = Number(val);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function normalizeItem(it = {}) {
+  return {
+    id: it.id,
+    title: it.title,
+    genre: it.genre,
+    cover: it.cover,
+    url: it.url,
+    views: toNumber(it.views, 0),
+  };
+}
+
+
 function escapeHtml(s = "") {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -35,7 +52,7 @@ async function main() {
   }
 
   const data = await res.json();
-  const items = Array.isArray(data.items) ? data.items : [];
+  const items = Array.isArray(data.items) ? data.items.map(normalizeItem) : [];
 
   // chỉ nhận đúng 2 genre
   const manhua = items.filter((x) => x.genre === "manhua");
@@ -44,7 +61,10 @@ async function main() {
   const tpl = fs.readFileSync("templates/index.template.html", "utf8");
 
   const html = tpl
-    .replaceAll("{{UPDATED_AT}}", escapeHtml(data.updatedAt || new Date().toISOString()))
+     .replaceAll(
+      "{{UPDATED_AT}}",
+      escapeHtml(data.updatedAt || new Date().toISOString())
+    )
     .replaceAll("{{MANHUA_COUNT}}", String(manhua.length))
     .replaceAll("{{MANHWA_COUNT}}", String(manhwa.length))
     .replaceAll("{{MANHUA_LIST}}", manhua.map(cardHtml).join("\n"))
@@ -54,8 +74,23 @@ async function main() {
   fs.writeFileSync(path.join("dist", "index.html"), html, "utf8");
 
   // (tuỳ chọn) lưu snapshot để debug/đối chiếu
-  fs.writeFileSync(path.join("dist", "comics.snapshot.json"), JSON.stringify(data, null, 2), "utf8");
+const snapshot = {
+    ...data,
+    items,
+  };
 
+  fs.writeFileSync(
+    path.join("dist", "comics.snapshot.json"),
+    JSON.stringify(snapshot, null, 2),
+    "utf8"
+  );
+
+  fs.mkdirSync(path.join("assets", "data"), { recursive: true });
+  fs.writeFileSync(
+    path.join("assets", "data", "comics.snapshot.json"),
+    JSON.stringify(snapshot, null, 2),
+    "utf8"
+  );
   console.log(`[site] Built dist/index.html: manhua=${manhua.length}, manhwa=${manhwa.length}`);
 }
 

@@ -39,51 +39,6 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* --- Dots --- */
 .dots{
   display:flex;
@@ -329,6 +284,22 @@ h1{
 
 .carousel-hint{
   margin-top: 10px;
+}
+
+.all-projects-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.load-more-wrap{
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.load-more-wrap .btn{
+  min-width: 190px;
 }
 
 

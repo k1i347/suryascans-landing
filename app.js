@@ -1,12 +1,19 @@
 (() => {
-    const SNAPSHOT_PATHS = ["./dist/comics.snapshot.json", "./assets/data/comics.snapshot.json"];
-    const PLACEHOLDER_IMAGE = "./assets/logo.png";
-    const AUTO_PLAY_DELAY = 3200;
+  const SNAPSHOT_PATHS = [
+    "./dist/comics.snapshot.json",
+    "./assets/data/comics.snapshot.json",
+  ];
+  const PLACEHOLDER_IMAGE = "./assets/logo.png";
+  const AUTO_PLAY_DELAY = 3200;
+  const LOAD_BATCH = 12;
 
-    const controllers = {
+  const controllers = {
     manhwa: createController("manhwa"),
     manhua: createController("manhua"),
   };
+
+  const allProjectsGrid = document.getElementById("allProjects");
+  const loadMoreBtn = document.getElementById("btnLoadMore");
 
   const hasCarousels = Object.values(controllers).some(Boolean);
   if (!hasCarousels) return;
@@ -15,7 +22,14 @@
     el.textContent = new Date().getFullYear();
   });
 
-  let featuredData = { manhwa: [], manhua: [] };
+    let featuredData = {
+    manhwa: [],
+    manhwaTotal: 0,
+    manhua: [],
+    manhuaTotal: 0,
+  };
+  let remainingItems = [];
+  let renderedCount = 0;
   let lastColumns = getColumns();
 
   function createController(type) {
@@ -81,16 +95,46 @@
     const genre = safeText(it.genre).toLowerCase();
     const cover = safeText(it.cover) || PLACEHOLDER_IMAGE;
     const url = safeText(it.url) || "#";
-
+        const id = safeText(it.id) || safeText(it.slug) || url || title;
+    const viewsNum = Number(it.views);
+    const views = Number.isFinite(viewsNum) ? viewsNum : 0;
     if (genre !== "manhwa" && genre !== "manhua") return null;
-    return { title, genre, cover, url };
+    if (!id) return null;
+
+    return { id, title, genre, cover, url, views };
   }
 
-  function splitByGenre(items) {
-    const normalized = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
+ function sortByViews(a, b) {
+    const byViews = (b?.views || 0) - (a?.views || 0);
+    if (byViews !== 0) return byViews;
+    return a.title.localeCompare(b.title, "en", { sensitivity: "base" });
+  }
+
+  function prepareData(items) {
+    const normalized = Array.isArray(items)
+      ? items.map(normalizeItem).filter(Boolean)
+      : [];
+
+    const manhwaSorted = normalized
+      .filter((it) => it.genre === "manhwa")
+      .sort(sortByViews);
+    const manhuaSorted = normalized
+      .filter((it) => it.genre === "manhua")
+      .sort(sortByViews);
+
+    const featuredManhwa = manhwaSorted.slice(0, 10);
+    const featuredManhua = manhuaSorted.slice(0, 10);
+    const featuredIds = new Set(
+      [...featuredManhwa, ...featuredManhua].map((it) => it.id)
+    );
+
+    const remaining = normalized.filter((it) => !featuredIds.has(it.id));
     return {
-      manhwa: normalized.filter((it) => it.genre === "manhwa"),
-      manhua: normalized.filter((it) => it.genre === "manhua"),
+    featuredManhwa,
+      featuredManhua,
+      manhwaTotal: manhwaSorted.length,
+      manhuaTotal: manhuaSorted.length,
+      remaining,
     };
   }
 
@@ -162,7 +206,7 @@ function createCard(item) {
     ctrl.dotsWrap.style.pointerEvents = count > 1 ? "auto" : "none";
   }
 
-  function renderCarousel(ctrl, items) {
+  function renderCarousel(ctrl, items, totalCount) {
     if (!ctrl) return;
 
     stopAutoPlay(ctrl);
@@ -202,7 +246,12 @@ function createCard(item) {
 
     renderDots(ctrl, ctrl.pageCount);
     setActiveDot(ctrl, ctrl.currentPage);
-    setHint(ctrl, `Showing ${items.length} titles`);
+    const topLabel = Math.min(items.length, 10);
+    const hintText = totalCount
+      ? `Top ${topLabel} by views • Total: ${totalCount}`
+      : `Top ${topLabel} by views`;
+
+    setHint(ctrl, hintText);
 
     attachScrollSync(ctrl);
     startAutoPlay(ctrl);
@@ -276,11 +325,51 @@ function createCard(item) {
     ctrl.autoTimer = null;
   }
 
+  function updateLoadMoreState() {
+    if (!loadMoreBtn) return;
+    const done = renderedCount >= remainingItems.length;
+    loadMoreBtn.textContent = done ? "Đã hiển thị tất cả" : "Xem thêm";
+    loadMoreBtn.disabled = done || remainingItems.length === 0;
+    loadMoreBtn.setAttribute("aria-disabled", loadMoreBtn.disabled ? "true" : "false");
+  }
+
+  function renderMoreProjects() {
+    if (!allProjectsGrid) return;
+    const next = remainingItems.slice(renderedCount, renderedCount + LOAD_BATCH);
+    next.forEach((item) => {
+      allProjectsGrid.appendChild(createCard(item));
+    });
+    renderedCount += next.length;
+    updateLoadMoreState();
+  }
+
+  function resetAllProjects(items) {
+    remainingItems = Array.isArray(items) ? items : [];
+    renderedCount = 0;
+
+    if (allProjectsGrid) {
+      allProjectsGrid.innerHTML = "";
+    }
+
+    if (remainingItems.length) {
+      renderMoreProjects();
+    } else {
+      updateLoadMoreState();
+    }
+  }
+
+
   async function init() {
     try {
       const raw = await loadSnapshot();
-      const items = Array.isArray(raw?.items) ? raw.items : [];
-      featuredData = splitByGenre(items);
+      const prepared = prepareData(raw?.items);
+      featuredData = {
+        manhwa: prepared.featuredManhwa,
+        manhwaTotal: prepared.manhwaTotal,
+        manhua: prepared.featuredManhua,
+        manhuaTotal: prepared.manhuaTotal,
+      };
+      resetAllProjects(prepared.remaining);
 
       renderAllCarousels();
 
@@ -295,7 +384,11 @@ function createCard(item) {
       console.error("[featured] load failed:", err);
       Object.values(controllers).forEach((ctrl) => {
       setHint(ctrl, "No featured titles yet.");
-      }); 
+      });
+      if (loadMoreBtn) {
+        loadMoreBtn.textContent = "Không tải được dữ liệu";
+        loadMoreBtn.disabled = true;
+      }
     }
   }
 
@@ -303,7 +396,15 @@ function createCard(item) {
     Object.values(controllers).forEach((ctrl) => {
       if (!ctrl) return;
       const items = featuredData[ctrl.type] || [];
-      renderCarousel(ctrl, items);
+    const totalKey = ctrl.type === "manhwa" ? "manhwaTotal" : "manhuaTotal";
+      const totalCount = featuredData[totalKey] || items.length;
+      renderCarousel(ctrl, items, totalCount);
+    });
+  }
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener("click", () => {
+      renderMoreProjects();
     });
   }
 
