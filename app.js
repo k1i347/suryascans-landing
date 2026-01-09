@@ -163,8 +163,11 @@
     card.className = "cover-card";
     card.role = "listitem";
     card.href = item.url;
+
+    // Click-only navigation (no redirects)
     card.target = "_blank";
-    card.rel = "noopener";
+    card.rel = "noopener noreferrer external";
+
     card.setAttribute("aria-label", item.title);
 
     const img = document.createElement("img");

@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Suryascans — We’re Back</title>
-  <link rel="icon" type="image/png" href="../assets/logo512.ico" />
-  <link rel="icon" href="../assets/logo182.ico" sizes="182x182" />
-  <link rel="icon" type="image/png" href="../assets/logo96.ico" sizes="96x96" />
-  <link rel="apple-touch-icon" href="../assets/logo96.ico" sizes="96x96">
-  <meta name="description" content="Suryascans is back. Official hub for featured projects, genres we cover, and verified contact links. Visit the reading site for releases." />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Suryascans — Official Landing</title>
 
-  <meta property="og:title" content="Suryascans — We’re Back" />
-  <meta property="og:description" content="Suryascans is back. Featured projects, genres, and verified contact links." />
+  <!-- Primary SEO -->
+  <meta name="description" content="Official Suryascans landing page: featured projects, genres, and verified contact links. Chapters are available on the reading site via the button below." />
+  <link rel="canonical" href="https://suryascans.top/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Suryascans — Official Landing" />
+  <meta property="og:description" content="Official hub for featured projects, genres, and verified contact links. Use the reading site button for releases." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://suryascans.top/" />
   <meta property="og:image" content="https://suryascans.top/assets/logo.png" />
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="./assets/favicon.png" />
-  <link rel="apple-touch-icon" href="./assets/favicon.png" />
- <link rel="stylesheet" href="./style.css" />
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="apple-touch-icon" href="/assets/favicon.png" />
+
+  <link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
@@ -30,13 +31,19 @@
   <!-- Header -->
   <header class="topbar">
     <div class="brand">
-      <div class="logo" aria-hidden="true">
-        <img src="./assets/logo.png" alt="Suryascans logo" />
+      <div class="logo">
+        <img src="/assets/logo.png" alt="Suryascans logo" />
       </div>
     </div>
 
-    <nav class="nav">
-      <a class="btn btn-primary" href="https://vanthucac.xyz" rel="noopener">Go to reading site</a>
+    <nav class="nav" aria-label="Primary">
+      <!-- Normal link, no auto redirect -->
+      <a class="btn btn-primary"
+         href="https://vanthucac.xyz"
+         rel="noopener noreferrer external"
+         target="_blank">
+        Go to reading site
+      </a>
     </nav>
   </header>
 
@@ -46,7 +53,12 @@
       <p class="kicker">OFFICIAL LANDING PAGE</p>
       <h1>Welcome to <span class="accent">Suryascans</span></h1>
       <p class="lead">
-        A clean hub for quick context, current genres, featured projects, and official contact links.
+        A clean hub for quick context, current genres, featured projects, and verified contact links.
+      </p>
+
+      <p class="muted" style="margin-top:10px">
+        Note: This page does <strong>not</strong> host chapters and does <strong>not</strong> auto-redirect.
+        Use the “Go to reading site” button when you want to read releases.
       </p>
 
       <div class="quick-links" aria-label="Quick links">
@@ -61,53 +73,49 @@
     </section>
 
     <!-- FEATURED PROJECTS STRIP -->
-<!-- FEATURED PROJECTS STRIP -->
-<section class="projects-strip" id="projects" aria-label="Featured projects">
-  <div class="section-head">
-    <h2>Featured projects</h2>
-    <p class="muted">A quick preview of series we’re actively featuring right now.</p>
-  </div>
-
-
-<div class="project-groups">
-    <div class="project-group">
-      <div class="project-group-head">
-        <h3>Manhwa</h3>
-        <p class="muted">Featured manhwa we’re publishing right now.</p>
+    <section class="projects-strip" id="projects" aria-label="Featured projects">
+      <div class="section-head">
+        <h2>Featured projects</h2>
+        <p class="muted">A quick preview of series we’re actively featuring right now.</p>
       </div>
 
-      <div class="carousel" aria-label="Featured manhwa carousel">
-        <div class="carousel-viewport" id="carouselViewport-manhwa">
-          <div class="carousel-track" id="coversTrack-manhwa" role="list"></div>
+      <div class="project-groups">
+        <div class="project-group">
+          <div class="project-group-head">
+            <h3>Manhwa</h3>
+            <p class="muted">Featured manhwa we’re publishing right now.</p>
+          </div>
+
+          <div class="carousel" aria-label="Featured manhwa carousel">
+            <div class="carousel-viewport" id="carouselViewport-manhwa">
+              <div class="carousel-track" id="coversTrack-manhwa" role="list"></div>
+            </div>
+
+            <div class="dots" id="carouselDots-manhwa" aria-label="Carousel pagination"></div>
+            <p class="muted carousel-hint" id="coversHint-manhwa"></p>
+          </div>
         </div>
 
-        <!-- Dots -->
-        <div class="dots" id="carouselDots-manhwa" aria-label="Carousel pagination"></div>
+        <div class="project-group">
+          <div class="project-group-head">
+            <h3>Manhua</h3>
+            <p class="muted">Featured manhua series in our lineup.</p>
+          </div>
 
-        <p class="muted carousel-hint" id="coversHint-manhwa"></p>
-      </div>
-    </div>
+          <div class="carousel" aria-label="Featured manhua carousel">
+            <div class="carousel-viewport" id="carouselViewport-manhua">
+              <div class="carousel-track" id="coversTrack-manhua" role="list"></div>
+            </div>
 
-  <div class="project-group">
-      <div class="project-group-head">
-        <h3>Manhua</h3>
-        <p class="muted">Featured manhua series in our lineup.</p>
-      </div>
-
-      <div class="carousel" aria-label="Featured manhua carousel">
-        <div class="carousel-viewport" id="carouselViewport-manhua">
-          <div class="carousel-track" id="coversTrack-manhua" role="list"></div>
+            <div class="dots" id="carouselDots-manhua" aria-label="Carousel pagination"></div>
+            <p class="muted carousel-hint" id="coversHint-manhua"></p>
+          </div>
         </div>
-
-        <!-- Dots -->
-        <div class="dots" id="carouselDots-manhua" aria-label="Carousel pagination"></div>
-
-        <p class="muted carousel-hint" id="coversHint-manhua"></p>
       </div>
-    </div>
-  </div>
-</section>
-  <section class="section" id="all-projects" aria-labelledby="all-projects-title">
+    </section>
+
+    <!-- ALL COMICS -->
+    <section class="section" id="all-projects" aria-labelledby="all-projects-title">
       <div class="section-head">
         <h2 id="all-projects-title">All Comics</h2>
         <p class="muted">Full list of series outside the top featured.</p>
@@ -119,28 +127,28 @@
         <button type="button" class="btn btn-secondary" id="btnLoadMore">Load more</button>
       </div>
     </section>
+
     <!-- INTRODUCTION -->
     <section class="section" id="introduction">
       <div class="section-head">
         <h2>Introduction</h2>
       </div>
 
-    <div class="prose">
-      <p class="intro-lead">
-        <strong>Suryascans is back.</strong> After a period of downtime, we’ve returned and are rebuilding step by step.
-        This page is our official landing hub—made to give readers quick, reliable links and a clear snapshot of what we’re working on.
-      </p>
+      <div class="prose">
+        <p class="intro-lead">
+          <strong>Suryascans is back.</strong> After a period of downtime, we’ve returned and are rebuilding step by step.
+          This page is our official landing hub—made to give readers quick, reliable links and a clear snapshot of what we’re working on.
+        </p>
 
-      <p class="intro-body">
-        Here you’ll find featured projects, the genres we currently cover, and verified contact channels.
-        For updates and releases, please use the reading site linked above.
-      </p>
+        <p class="intro-body">
+          Here you’ll find featured projects, the genres we currently cover, and verified contact channels.
+          For updates and releases, please use the reading site via the button at the top.
+        </p>
 
-      <p class="intro-note">
-        If you’ve seen older mirrors or unofficial pages, please use the links here to make sure you’re following the real channels.
-      </p>
-    </div>
-
+        <p class="intro-note">
+          If you’ve seen older mirrors or unofficial pages, please use the links here to make sure you’re following the real channels.
+        </p>
+      </div>
     </section>
 
     <!-- GENRES -->
@@ -151,25 +159,25 @@
       </div>
 
       <div class="genres">
-  <a class="genre" href="https://vanthucac.xyz/manga-genre/action/" rel="noopener" target="_blank"><span>Action</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/adventure/" rel="noopener" target="_blank"><span>Adventure</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/crime/" rel="noopener" target="_blank"><span>Crime</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/drama/" rel="noopener" target="_blank"><span>Drama</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/fantasy/" rel="noopener" target="_blank"><span>Fantasy</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/fight/" rel="noopener" target="_blank"><span>Fight</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/historical/" rel="noopener" target="_blank"><span>Historical</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/hunters/" rel="noopener" target="_blank"><span>Hunters</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/magic/" rel="noopener" target="_blank"><span>Magic</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/manhua/" rel="noopener" target="_blank"><span>Manhua</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/manhwa/" rel="noopener" target="_blank"><span>Manhwa</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/martial-arts/" rel="noopener" target="_blank"><span>Martial Arts</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/mystery/" rel="noopener" target="_blank"><span>Mystery</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/reincarnation/" rel="noopener" target="_blank"><span>Reincarnation</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/school-life/" rel="noopener" target="_blank"><span>School Life</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/shounen/" rel="noopener" target="_blank"><span>Shounen</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/supernatural/" rel="noopener" target="_blank"><span>Supernatural</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/tragedy/" rel="noopener" target="_blank"><span>Tragedy</span><span class="count"></span></a>
-        <a class="genre" href="https://vanthucac.xyz/manga-genre/zombies/" rel="noopener" target="_blank"><span>Zombies</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/action/" rel="noopener noreferrer external" target="_blank"><span>Action</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/adventure/" rel="noopener noreferrer external" target="_blank"><span>Adventure</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/crime/" rel="noopener noreferrer external" target="_blank"><span>Crime</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/drama/" rel="noopener noreferrer external" target="_blank"><span>Drama</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/fantasy/" rel="noopener noreferrer external" target="_blank"><span>Fantasy</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/fight/" rel="noopener noreferrer external" target="_blank"><span>Fight</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/historical/" rel="noopener noreferrer external" target="_blank"><span>Historical</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/hunters/" rel="noopener noreferrer external" target="_blank"><span>Hunters</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/magic/" rel="noopener noreferrer external" target="_blank"><span>Magic</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/manhua/" rel="noopener noreferrer external" target="_blank"><span>Manhua</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/manhwa/" rel="noopener noreferrer external" target="_blank"><span>Manhwa</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/martial-arts/" rel="noopener noreferrer external" target="_blank"><span>Martial Arts</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/mystery/" rel="noopener noreferrer external" target="_blank"><span>Mystery</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/reincarnation/" rel="noopener noreferrer external" target="_blank"><span>Reincarnation</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/school-life/" rel="noopener noreferrer external" target="_blank"><span>School Life</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/shounen/" rel="noopener noreferrer external" target="_blank"><span>Shounen</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/supernatural/" rel="noopener noreferrer external" target="_blank"><span>Supernatural</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/tragedy/" rel="noopener noreferrer external" target="_blank"><span>Tragedy</span><span class="count"></span></a>
+        <a class="genre" href="https://vanthucac.xyz/manga-genre/zombies/" rel="noopener noreferrer external" target="_blank"><span>Zombies</span><span class="count"></span></a>
       </div>
     </section>
 
@@ -181,9 +189,9 @@
       </div>
 
       <div class="contact-list">
-        <a class="contact-item" href="https://facebook.com/suryascans" rel="noopener" target="_blank">
+        <a class="contact-item" href="https://facebook.com/suryascans" rel="noopener noreferrer external" target="_blank">
           <span class="icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" role="img" aria-label="Facebook">
               <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.25c-1.23 0-1.61.76-1.61 1.54V12h2.74l-.44 2.89h-2.3v6.99A10 10 0 0 0 22 12z"/>
             </svg>
           </span>
@@ -193,9 +201,9 @@
           </span>
         </a>
 
-        <a class="contact-item" href="https://discord.gg/DSYUVyQhbS" rel="noopener" target="_blank">
+        <a class="contact-item" href="https://discord.gg/DSYUVyQhbS" rel="noopener noreferrer external" target="_blank">
           <span class="icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" role="img" aria-label="Discord">
               <path d="M20.3 4.4A16.9 16.9 0 0 0 16.1 3l-.5 1.1a15 15 0 0 0-3.6-.1A15 15 0 0 0 8.4 4L7.9 3a16.9 16.9 0 0 0-4.2 1.4C1.6 8 1 11.6 1.2 15.1c1.5 1.1 3.3 2 5.1 2.5l.9-1.4c-.6-.2-1.2-.5-1.8-.8l.4-.3c3.4 1.6 7.1 1.6 10.4 0l.4.3c-.6.3-1.2.6-1.8.8l.9 1.4c1.8-.5 3.6-1.4 5.1-2.5.3-3.9-.4-7.5-2.5-10.7ZM8.7 13.5c-.7 0-1.2-.7-1.2-1.5s.5-1.5 1.2-1.5 1.2.7 1.2 1.5-.5 1.5-1.2 1.5Zm6.6 0c-.7 0-1.2-.7-1.2-1.5s.5-1.5 1.2-1.5 1.2.7 1.2 1.5-.5 1.5-1.2 1.5Z"/>
             </svg>
           </span>
@@ -207,7 +215,7 @@
 
         <a class="contact-item" href="mailto:Support@suryascans.top">
           <span class="icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" role="img" aria-label="Email">
               <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"/>
             </svg>
           </span>
@@ -220,15 +228,14 @@
     </section>
 
     <footer class="footer">
-      <div>© <span id="year"></span> Suryascans. </div>
-      <div><span id="year"></span> About this page: This is a lightweight landing page for official links and project highlights. It does not host chapters directly. </div>
+      <div>© <span id="year"></span> Suryascans.</div>
+      <div class="muted">
+        About this page: This is a lightweight landing page for official links and project highlights. It does not host chapters directly.
+      </div>
       <a class="back-to-top" href="#top" aria-label="Back to top">↑</a>
     </footer>
-
   </main>
 
-
- 
-  <script src="./app.js" defer></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>
