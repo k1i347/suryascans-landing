@@ -1,6 +1,30 @@
 {
-  "updatedAt": "2026-01-17T13:26:56-05:00",
+  "updatedAt": "2026-01-17T20:46:21-05:00",
   "items": [
+    {
+      "id": "the-delusional-hunter-in-another-world",
+      "title": "The Delusional Hunter in Another World",
+      "genre": "manhwa",
+      "cover": "https://vanthucac.xyz/wp-content/uploads/2026/01/the-delusional-hunter-in-another-world.webp",
+      "url": "https://vanthucac.xyz/manga/the-delusional-hunter-in-another-world/",
+      "views": 0
+    },
+    {
+      "id": "dukedoms-legendary-prodigy",
+      "title": "Dukedom’s Legendary Prodigy",
+      "genre": "manhwa",
+      "cover": "https://vanthucac.xyz/wp-content/uploads/2026/01/Dukedoms-Legendary-Prodigy-193x278-1.webp",
+      "url": "https://vanthucac.xyz/manga/dukedoms-legendary-prodigy/",
+      "views": 0
+    },
+    {
+      "id": "empire-of-the-ants",
+      "title": "Empire of the Ants",
+      "genre": "manhwa",
+      "cover": "https://vanthucac.xyz/wp-content/uploads/2026/01/empire-of-the-ants-716x1024.webp",
+      "url": "https://vanthucac.xyz/manga/empire-of-the-ants/",
+      "views": 0
+    },
     {
       "id": "a-wimps-strategy-guide-to-conquer-the-tower",
       "title": "A Wimp’s Strategy Guide to Conquer the Tower",
